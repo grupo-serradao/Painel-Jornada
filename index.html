@@ -5164,31 +5164,33 @@ function processRawData(basesResult, metasResult){
 
     Object.entries(empInterRows).forEach(([cracha,list])=>{
         list.sort((a,b)=>a.dateObj-b.dateObj);
-        for(let i=0;i<list.length;i++){
-            const cur = list[i];
-            if(!cur.alFlag) continue;
+        for(let i=1;i<list.length;i++){
+            const cur  = list[i];
+            const prev = list[i-1];
+
+            /* Calcula o intervalo real: saída anterior → entrada atual.
+               Só processa quando ambos os horários estão disponíveis. */
+            if(!prev.exitStr || !cur.entryStr) continue;
+
+            const dayDiff = Math.round((
+                new Date(cur.dateObj.getFullYear(),cur.dateObj.getMonth(),cur.dateObj.getDate()) -
+                new Date(prev.dateObj.getFullYear(),prev.dateObj.getMonth(),prev.dateObj.getDate())
+            )/86400000);
+            if(dayDiff < 1 || dayDiff > 3) continue;
+
+            let intv = dayDiff*24 + parseTime(cur.entryStr) - parseTime(prev.exitStr);
+            if(intv < 0) intv += 24;
+
+            /* Infração: intervalo inferior a 11 horas */
+            if(intv >= 11) continue;
 
             execInter[cur.ym] = (execInter[cur.ym]||0) + 1;
             if(!cur.inPeriod) continue;
 
-            /* Intervalo: saída do registro anterior → entrada do dia */
-            const prev = i > 0 ? list[i-1] : null;
-            let intv = null;
-            if(prev){
-                const dayDiff = Math.round((
-                    new Date(cur.dateObj.getFullYear(),cur.dateObj.getMonth(),cur.dateObj.getDate()) -
-                    new Date(prev.dateObj.getFullYear(),prev.dateObj.getMonth(),prev.dateObj.getDate())
-                )/86400000);
-                if(dayDiff >= 1 && dayDiff <= 3 && prev.exitStr && cur.entryStr){
-                    intv = dayDiff*24 + parseTime(cur.entryStr) - parseTime(prev.exitStr);
-                    if(intv < 0) intv += 24;
-                }
-            }
-
             interOccP++;
             interEmp.add(cracha);
             interDays.add(cur.datePt);
-            if(intv !== null && intv < interMinP) interMinP = intv;
+            if(intv < interMinP) interMinP = intv;
 
             if(!empInterData[cur.setor]) empInterData[cur.setor] = {};
             const e = empInterData[cur.setor][cracha] =
@@ -5196,13 +5198,13 @@ function processRawData(basesResult, metasResult){
                 {name:cur.name,gerente:cur.gerente,occurrences:0,days:new Set(),minInterval:999,lastDate:'',history:[]};
             e.occurrences++;
             e.days.add(cur.datePt);
-            if(intv !== null && intv < e.minInterval) e.minInterval = intv;
+            if(intv < e.minInterval) e.minInterval = intv;
             if(!e.lastDate || dateKey(cur.datePt) > dateKey(e.lastDate)) e.lastDate = cur.datePt;
             e.history.push({
                 date:cur.datePt,
-                exit:prev ? prev.datePt+' · '+(prev.exitStr||'—') : '—',
-                entry:cur.datePt+' · '+(cur.entryStr||'—'),
-                interval:intv !== null ? formatIntervalStr(intv) : '—'
+                exit:prev.datePt+' · '+prev.exitStr,
+                entry:cur.datePt+' · '+cur.entryStr,
+                interval:formatIntervalStr(intv)
             });
         }
     });
@@ -5463,7 +5465,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.3 · 29/09/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.4 · 05/10/2026</div>
 
 </body>
 </html>
