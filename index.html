@@ -971,10 +971,91 @@ canvas{
     border:1px solid rgba(255,213,128,.25);
 }
 
+
+/* =========================================================
+   LOGIN
+========================================================= */
+#loginOverlay{
+    position:fixed; inset:0; z-index:20000;
+    display:none; align-items:center; justify-content:center;
+    padding:16px;
+    background:linear-gradient(160deg,#003D58 0%,#012B3F 100%);
+    font-family:Montserrat,Arial,sans-serif;
+}
+#loginOverlay.open{ display:flex; }
+.login-card{
+    width:100%; max-width:380px;
+    background:#fff; border-radius:14px;
+    box-shadow:0 18px 50px rgba(0,0,0,.35);
+    padding:32px 28px 26px;
+    color:var(--text);
+}
+.login-kicker{ font-size:11px; font-weight:700; letter-spacing:.12em; color:var(--muted); text-transform:uppercase; }
+.login-card h1{ margin:6px 0 4px; font-size:22px; color:var(--petroleum); }
+.login-card p.login-sub{ margin:0 0 22px; font-size:13px; color:var(--text-2); line-height:1.45; }
+.login-card label{ display:block; font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:6px; }
+.login-card input{
+    width:100%; box-sizing:border-box;
+    border:1px solid var(--border); border-radius:8px;
+    padding:12px 14px; font-size:15px; font-family:inherit; color:var(--text);
+    outline:none;
+}
+.login-card input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(21,210,255,.2); }
+#loginCode{ letter-spacing:.4em; font-size:20px; text-align:center; font-variant-numeric:tabular-nums; }
+.login-btn{
+    width:100%; margin-top:16px; padding:12px; border:none; border-radius:8px;
+    background:var(--petroleum); color:#fff; font:700 14px Montserrat,Arial,sans-serif; cursor:pointer;
+}
+.login-btn:disabled{ opacity:.6; cursor:wait; }
+.login-links{ display:flex; justify-content:space-between; gap:12px; margin-top:14px; }
+.login-links button{
+    background:none; border:none; padding:0; cursor:pointer;
+    font:600 12px Montserrat,Arial,sans-serif; color:var(--petroleum); text-decoration:underline;
+}
+#loginMsg{ min-height:18px; margin-top:12px; font-size:12px; line-height:1.4; color:var(--text-2); }
+#loginMsg.erro{ color:var(--red-dark); }
+.login-foot{ margin-top:18px; font-size:11px; color:var(--muted-2); text-align:center; }
+
+.user-chip{ display:none; align-items:center; gap:8px; color:#fff; font-size:12px; }
+.user-chip.on{ display:flex; }
+.user-chip span{ opacity:.8; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.user-chip button{
+    background:transparent; color:#fff; border:1px solid rgba(255,255,255,.45);
+    border-radius:16px; padding:5px 12px; font:600 12px Montserrat,Arial,sans-serif; cursor:pointer;
+}
+.user-chip button:hover{ background:rgba(255,255,255,.12); }
+@media (max-width:900px){ .user-chip span{ display:none; } }
 </style>
 </head>
 
 <body>
+<div id="loginOverlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <form class="login-card" id="loginForm" autocomplete="on" novalidate>
+        <div class="login-kicker">Frigorífico Serradão</div>
+        <h1 id="loginTitle">Painel de Jornada</h1>
+        <p class="login-sub" id="loginSub">Acesso restrito. Informe seu e-mail para receber um código de entrada.</p>
+
+        <div id="loginStepEmail">
+            <label for="loginEmail">E-mail</label>
+            <input id="loginEmail" type="email" inputmode="email" autocomplete="email" placeholder="nome@empresa.com.br">
+            <button class="login-btn" id="loginSend" type="submit">Enviar código</button>
+        </div>
+
+        <div id="loginStepCode" style="display:none">
+            <label for="loginCode">Código de 6 dígitos</label>
+            <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
+            <button class="login-btn" id="loginEnter" type="submit">Entrar</button>
+            <div class="login-links">
+                <button type="button" onclick="loginVoltar()">Usar outro e-mail</button>
+                <button type="button" onclick="loginReenviar()">Reenviar código</button>
+            </div>
+        </div>
+
+        <div id="loginMsg" aria-live="polite"></div>
+        <div class="login-foot">Os acessos ficam registrados.</div>
+    </form>
+</div>
+
 <div id="loadingOverlay">
     <div id="loadingSpinner"></div>
     <div id="loadingText">Carregando dados…</div>
@@ -1018,6 +1099,11 @@ canvas{
                 <option value="Frigovitta">Frigovitta</option>
                 <option value="Frigorífico Serradão">Frigorífico Serradão</option>
             </select>
+        </div>
+
+        <div class="user-chip" id="userChip">
+            <span id="userEmail"></span>
+            <button type="button" onclick="sairDoPainel()">Sair</button>
         </div>
 
         <div class="aquila-logo-wrap">
@@ -4596,6 +4682,11 @@ function initializeDashboard(){
 const APPS_SCRIPT_URL =
     'https://script.google.com/macros/s/AKfycbyVOhMYr_NwSBXuggSLtWLC5E3R_5_6Vb1DiFLNXEEWlZ8jIyZDbt3kIzVdCzBxA3PX/exec';
 
+/* LOGIN — link do Apps Script "Porteiro" (termina em /exec).
+   Vazio = painel aberto, lendo a planilha pública como antes. */
+const PORTEIRO_URL = 'https://script.google.com/macros/s/AKfycbyqFM4eUkZwhK25hXKHRdTsCvBK9wVnjjD-Cd8JIQeZfJNScAKZAKUareVjzxRPH0zt/exec';
+const SESSAO_KEY   = 'pj_sessao';
+
 /* ID da planilha — extraído da URL do Google Sheets */
 const SHEET_ID = '1CBhv0R723L8pyni9KfMYWfSxV-Oa93XfzDWK-94ISU4';
 
@@ -4714,7 +4805,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '1.8';
+const APP_VERSION = '2.0';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
@@ -4762,7 +4853,65 @@ function lcAgeMin(){
    resultado pequeno trafega. 5-10× mais rápido.
    ══════════════════════════════════════════════════════ */
 
+/* Converte a tabela do Google (gviz) no formato {cols, rows} usado pelo painel */
+function parseGvizTable(table){
+    table = table || {cols:[], rows:[]};
+    const cols = (table.cols||[]).map(c=>({label:c.label, type:c.type}));
+
+    const rows = (table.rows||[]).map(r=>
+        (r.c||[]).map((c,i)=>{
+            if(!c || c.v===null || c.v===undefined) return null;
+            const type = cols[i] ? cols[i].type : '';
+            /* Date → "M/D/YYYY" (igual ao formato antigo) */
+            if(type === 'date'){
+                if(typeof c.v === 'string'){
+                    const dm = c.v.match(/Date\((\d+),(\d+),(\d+)\)/);
+                    if(dm) return (parseInt(dm[2])+1)+'/'+dm[3]+'/'+dm[1];
+                }
+                return c.f || String(c.v);
+            }
+            /* timeofday → "H:MM" string (parseTime aceita arrays também) */
+            if(type === 'timeofday'){
+                if(Array.isArray(c.v))
+                    return c.v[0]+':'+String(c.v[1]||0).padStart(2,'0');
+                return c.f || String(c.v);
+            }
+            /* datetime → extrai H:MM da parte de hora do construtor Date(y,m,d,h,min,s)
+               Usado por AB (HE Total), H, I, AF, AI, AK — todos colunas de tempo/duração.
+               Retorna string "H:MM" no mesmo formato que parseTime() já sabe ler. */
+            if(type === 'datetime'){
+                if(typeof c.v === 'string'){
+                    const dm = c.v.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
+                    if(dm) return dm[1]+':'+String(dm[2]).padStart(2,'0');
+                }
+                /* Fallback: usa o valor formatado (c.f) */
+                return c.f || null;
+            }
+            return c.v ?? null;
+        })
+    );
+    return {cols, rows};
+}
+
+/* Lê uma aba: com o porteiro configurado, os dados só vêm com login;
+   sem ele, lê a planilha pública direto (modo antigo). */
 function gviz(sheet, query){
+    if(PORTEIRO_URL) return gvizPorteiro(sheet, query);
+    return gvizPublico(sheet, query);
+}
+
+async function gvizPorteiro(sheet, query){
+    const sessao = lerSessao();
+    if(!sessao){ exigirLogin(); throw new Error('auth'); }
+    const resp = await chamarPorteiro({action:'data', token:sessao.token, sheet, query});
+    if(!resp.ok){
+        if(resp.error === 'auth'){ exigirLogin('Sua sessão terminou. Entre novamente.'); throw new Error('auth'); }
+        throw new Error(resp.error || ('Falha ao ler "'+sheet+'"'));
+    }
+    return parseGvizTable(resp.table);
+}
+
+function gvizPublico(sheet, query){
     return new Promise((resolve, reject) => {
         const cb = 'gv_' + Date.now() + '_' + Math.random().toString(36).slice(2);
         const s  = document.createElement('script');
@@ -4779,43 +4928,7 @@ function gviz(sheet, query){
                     (resp.errors||[]).map(e=>e.detailed_message||e.message).join('; ')
                 ));
 
-            const table = resp.table || {cols:[], rows:[]};
-            const cols = (table.cols||[]).map(c=>({label:c.label, type:c.type}));
-
-            const rows = (table.rows||[]).map(r=>
-                (r.c||[]).map((c,i)=>{
-                    if(!c || c.v===null || c.v===undefined) return null;
-                    const type = cols[i] ? cols[i].type : '';
-                    /* Date → "M/D/YYYY" (igual ao formato antigo) */
-                    if(type === 'date'){
-                        if(typeof c.v === 'string'){
-                            const dm = c.v.match(/Date\((\d+),(\d+),(\d+)\)/);
-                            if(dm) return (parseInt(dm[2])+1)+'/'+dm[3]+'/'+dm[1];
-                        }
-                        return c.f || String(c.v);
-                    }
-                    /* timeofday → "H:MM" string (parseTime aceita arrays também) */
-                    if(type === 'timeofday'){
-                        if(Array.isArray(c.v))
-                            return c.v[0]+':'+String(c.v[1]||0).padStart(2,'0');
-                        return c.f || String(c.v);
-                    }
-                    /* datetime → extrai H:MM da parte de hora do construtor Date(y,m,d,h,min,s)
-                       Usado por AB (HE Total), H, I, AF, AI, AK — todos colunas de tempo/duração.
-                       Retorna string "H:MM" no mesmo formato que parseTime() já sabe ler. */
-                    if(type === 'datetime'){
-                        if(typeof c.v === 'string'){
-                            const dm = c.v.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
-                            if(dm) return dm[1]+':'+String(dm[2]).padStart(2,'0');
-                        }
-                        /* Fallback: usa o valor formatado (c.f) */
-                        return c.f || null;
-                    }
-                    return c.v ?? null;
-                })
-            );
-
-            resolve({cols, rows});
+            resolve(parseGvizTable(resp.table));
         };
 
         s.onerror = ()=>{ cleanup(); reject(new Error('Falha ao carregar "'+sheet+'"')); };
@@ -4900,7 +5013,7 @@ async function _refreshInBackground(){
         console.warn('[Dashboard] atualização em segundo plano falhou:', e.message);
         if(PENDING_FILTER){
             PENDING_FILTER = false;
-            showError('Não foi possível recalcular com o novo filtro: ' + e.message);
+            if(e.message !== 'auth') showError('Não foi possível recalcular com o novo filtro: ' + e.message);
         }
     }
 }
@@ -4945,7 +5058,7 @@ async function _fetchAndProcess(background){
             if(PENDING_FILTER){ PENDING_FILTER = false; showLoading(false); }
         }
     }catch(err){
-        if(!background){
+        if(!background && err.message !== 'auth'){
             showError('Erro ao carregar: '+err.message);
         }
         throw err;
@@ -5545,16 +5658,128 @@ function updateExecutiveCards(){
 }
 
 
+
+/* =========================================================
+   LOGIN (código por e-mail, validado pelo Apps Script)
+========================================================= */
+function lerSessao(){
+    try{
+        const o = JSON.parse(localStorage.getItem(SESSAO_KEY) || 'null');
+        if(o && o.token && o.expira > Date.now()) return o;
+    }catch(e){}
+    return null;
+}
+function gravarSessao(o){ try{ localStorage.setItem(SESSAO_KEY, JSON.stringify(o)); }catch(e){} }
+function apagarSessao(){ try{ localStorage.removeItem(SESSAO_KEY); }catch(e){} }
+
+async function chamarPorteiro(payload){
+    let r;
+    try{
+        /* text/plain evita a checagem prévia de CORS que o Apps Script não responde */
+        r = await fetch(PORTEIRO_URL, {method:'POST', body:JSON.stringify(payload),
+                                       headers:{'Content-Type':'text/plain;charset=utf-8'}});
+    }catch(e){ throw new Error('Sem conexão com o servidor de acesso.'); }
+    if(!r.ok) throw new Error('Servidor de acesso respondeu ' + r.status + '.');
+    return r.json();
+}
+
+let loginEmailAtual = '';
+function loginMsg(txt, erro){
+    const el = document.getElementById('loginMsg');
+    el.textContent = txt || '';
+    el.className = erro ? 'erro' : '';
+}
+function loginPasso(passo){
+    document.getElementById('loginStepEmail').style.display = passo === 'email' ? '' : 'none';
+    document.getElementById('loginStepCode').style.display  = passo === 'code'  ? '' : 'none';
+    document.getElementById('loginSub').textContent = passo === 'email'
+        ? 'Acesso restrito. Informe seu e-mail para receber um código de entrada.'
+        : 'Enviamos um código para ' + loginEmailAtual + '. Ele vale por 10 minutos.';
+    setTimeout(()=>document.getElementById(passo === 'email' ? 'loginEmail' : 'loginCode').focus(), 50);
+}
+function exigirLogin(msg){
+    apagarSessao();
+    lcClear();
+    showLoading(false);
+    document.getElementById('userChip').classList.remove('on');
+    document.getElementById('loginOverlay').classList.add('open');
+    loginPasso('email');
+    loginMsg(msg || '', !!msg);
+}
+async function loginPedirCodigo(){
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ loginMsg('Informe um e-mail válido.', true); return; }
+    const btn = document.getElementById('loginSend');
+    btn.disabled = true; loginMsg('Enviando…');
+    try{
+        const r = await chamarPorteiro({action:'requestCode', email});
+        if(!r.ok){ loginMsg(r.error || 'Não foi possível enviar o código.', true); return; }
+        loginEmailAtual = email;
+        document.getElementById('loginCode').value = '';
+        loginPasso('code');
+        loginMsg(r.message || '');
+    }catch(e){ loginMsg(e.message, true); }
+    finally{ btn.disabled = false; }
+}
+async function loginConferir(){
+    const code = document.getElementById('loginCode').value.replace(/\D/g,'');
+    if(code.length !== 6){ loginMsg('Digite os 6 dígitos do código.', true); return; }
+    const btn = document.getElementById('loginEnter');
+    btn.disabled = true; loginMsg('Conferindo…');
+    try{
+        const r = await chamarPorteiro({action:'verify', email:loginEmailAtual, code,
+                                        agent:navigator.userAgent});
+        if(!r.ok){ loginMsg(r.error || 'Código incorreto.', true); return; }
+        gravarSessao({token:r.token, email:r.email, nome:r.nome, expira:r.expira});
+        document.getElementById('loginOverlay').classList.remove('open');
+        loginMsg('');
+        mostrarUsuario();
+        loadAndProcess(true);
+    }catch(e){ loginMsg(e.message, true); }
+    finally{ btn.disabled = false; }
+}
+function loginVoltar(){ loginPasso('email'); loginMsg(''); }
+async function loginReenviar(){
+    document.getElementById('loginEmail').value = loginEmailAtual;
+    await loginPedirCodigo();
+}
+document.getElementById('loginForm').addEventListener('submit', e=>{
+    e.preventDefault();
+    if(document.getElementById('loginStepCode').style.display === 'none') loginPedirCodigo();
+    else loginConferir();
+});
+function mostrarUsuario(){
+    const s = lerSessao();
+    const chip = document.getElementById('userChip');
+    if(!PORTEIRO_URL || !s){ chip.classList.remove('on'); return; }
+    document.getElementById('userEmail').textContent = s.nome || s.email;
+    document.getElementById('userEmail').title = s.email;
+    chip.classList.add('on');
+}
+async function sairDoPainel(){
+    const s = lerSessao();
+    if(s){ try{ await chamarPorteiro({action:'logout', token:s.token}); }catch(e){} }
+    exigirLogin('Você saiu do painel.');
+    document.getElementById('loginMsg').className = '';
+}
+
+/* ── Carga inicial ── */
+function iniciarPainel(){
+    if(PORTEIRO_URL && !lerSessao()){ exigirLogin(); return; }
+    mostrarUsuario();
+    loadAndProcess();
+}
+
 /* ── Carga inicial (no final, para todas as constantes já existirem) ── */
 if(document.fonts && document.fonts.ready){
-    document.fonts.ready.then(()=>loadAndProcess()).catch(()=>loadAndProcess());
+    document.fonts.ready.then(()=>iniciarPainel()).catch(()=>iniciarPainel());
 }else{
-    loadAndProcess();
+    iniciarPainel();
 }
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.8 · 06/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.0 · 06/10/2026</div>
 
 </body>
 </html>
