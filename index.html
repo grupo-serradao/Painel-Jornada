@@ -1091,7 +1091,7 @@ canvas{
             <div class="card-title">Horário de Almoço</div>
             <div id="execLunchEmployees" class="card-value">—</div>
             <div class="card-caption">colaboradores envolvidos</div>
-            <div id="execLunchDetail" class="card-secondary">— &lt;1h · — &gt;1h</div>
+            <div id="execLunchDetail" class="card-secondary">— &lt;1h · — &gt;1h05</div>
         </article>
 
     </section>
@@ -1534,7 +1534,7 @@ canvas{
         </article>
 
         <article class="card yellow">
-            <div class="card-title">Intervalo Superior a 1h</div>
+            <div class="card-title">Intervalo Superior a 1h05</div>
             <div id="lunchCardMore" class="card-value">—</div>
             <div class="card-caption">ocorrências registradas</div>
             <div id="lunchCardMorePct" class="card-secondary">—</div>
@@ -1559,7 +1559,7 @@ canvas{
                         <th>Gerência</th>
                         <th class="numeric">Colaboradores</th>
                         <th class="numeric">&lt;1h</th>
-                        <th class="numeric">&gt;1h</th>
+                        <th class="numeric">&gt;1h05</th>
                         <th class="numeric">Total</th>
                         <th class="numeric">% do total</th>
                         <th>Predominância</th>
@@ -1584,7 +1584,7 @@ canvas{
             <div class="toggle">
                 <button id="lunchTotalButton" class="active" onclick="setLunchParetoMode('total')">TOTAL</button>
                 <button id="lunchLessButton" onclick="setLunchParetoMode('less')">&lt;1H</button>
-                <button id="lunchMoreButton" onclick="setLunchParetoMode('more')">&gt;1H</button>
+                <button id="lunchMoreButton" onclick="setLunchParetoMode('more')">&gt;1H05</button>
             </div>
         </header>
 
@@ -1610,7 +1610,7 @@ canvas{
                 </div>
 
                 <div class="context-stat">
-                    <span>Intervalo &gt;1h</span>
+                    <span>Intervalo &gt;1h05</span>
                     <strong id="lunchSelectedMore">—</strong>
                 </div>
 
@@ -1651,7 +1651,7 @@ canvas{
                         <th>Colaborador</th>
                         <th id="lunchSectorHeader" style="display:none">Setor</th>
                         <th class="numeric">&lt;1h</th>
-                        <th class="numeric">&gt;1h</th>
+                        <th class="numeric">&gt;1h05</th>
                         <th class="numeric sortable-header" onclick="toggleEmployeeSort('lunch')">
                             <span class="sort-label">
                                 Total
@@ -2547,7 +2547,7 @@ function renderExecutiveLunchChart(){
                         },
 
                         {
-                            label:'>1h',
+                            label:'>1h05',
                             data:DATA.executive.lunchMore,
                             backgroundColor:COLORS.amber,
                             borderRadius:5,
@@ -3338,7 +3338,7 @@ function renderLunchManagementTable(){
 
                 <td>
                     <span class="status ${lessPredominates?'red':'yellow'}">
-                        ${lessPredominates?'<1h':'>1h'}
+                        ${lessPredominates?'<1h':'>1h05'}
                     </span>
                 </td>
 
@@ -4334,7 +4334,7 @@ function openLunchDrawer(name,sector){
         </div>
 
         <div class="drawer-stat">
-            <span>Intervalos &gt;1h</span>
+            <span>Intervalos &gt;1h05</span>
             <strong>${employee.more}</strong>
         </div>
     `;
@@ -4356,7 +4356,7 @@ function openLunchDrawer(name,sector){
                 const label =
                     item.type === 'less'
                     ? '<1h'
-                    : '>1h';
+                    : '>1h05';
 
                 const className =
                     item.type === 'less'
@@ -4707,7 +4707,9 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '1.5';
+const APP_VERSION = '1.6';
+/* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
+const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
 const LC_TTL = 6 * 60 * 60 * 1000;
 /* limpa caches de versões anteriores */
@@ -5090,7 +5092,7 @@ function processRawData(basesResult, metasResult){
             heFlag,
             heHours: heFlag ? parseTime(row[5]) : 0,
             lunchLess: (+row[14] || 0) ? 1 : 0,
-            lunchMore: lunchDur > 1 + 1e-9 ? 1 : 0,   /* regra da diretoria: almoço acima de 1h00 (1h01 já conta) */
+            lunchMore: Math.round(lunchDur*60) > LUNCH_MAX_MIN ? 1 : 0,   /* regra da diretoria: tolerância de 5 min — até 1h05 não conta, 1h06 já conta */
             lunchDur,
             lunchStart: String(row[3]||'').trim(),
             lunchEnd:   String(row[4]||'').trim(),
@@ -5400,8 +5402,8 @@ function updateExecutiveCards(){
         DATA._lunchEmployees != null ? DATA._lunchEmployees : '—';
     if(lunchDetEl) lunchDetEl.textContent =
         DATA._lunchLess != null
-        ? DATA._lunchLess + ' <1h · ' + (DATA._lunchMore || 0) + ' >1h'
-        : '— <1h · — >1h';
+        ? DATA._lunchLess + ' <1h · ' + (DATA._lunchMore || 0) + ' >1h05'
+        : '— <1h · — >1h05';
 
     /* Top HE management card (HE screen) */
     /* Maior concentração = gerência com mais horas (independe da ordenação da tabela) */
@@ -5480,7 +5482,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.5 · 05/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.6 · 06/10/2026</div>
 
 </body>
 </html>
