@@ -1136,7 +1136,7 @@ canvas{
                 <div class="panel-kicker">HORÁRIO DE ALMOÇO</div>
                 <h2 class="panel-title">Evolução das ocorrências</h2>
                 <p class="panel-subtitle">
-                    Comparação mensal entre intervalos inferiores e superiores a 1 hora
+                    Comparação mensal entre intervalos inferiores a 1 hora e superiores a 1h05
                 </p>
             </div>
         </header>
@@ -1547,7 +1547,7 @@ canvas{
                 <div class="panel-kicker">NÍVEL 1 · GERÊNCIA</div>
                 <h2 class="panel-title">Ocorrências por Gerência</h2>
                 <p class="panel-subtitle">
-                    Distribuição dos intervalos inferiores e superiores a 1 hora
+                    Distribuição dos intervalos inferiores a 1 hora e superiores a 1h05
                 </p>
             </div>
         </header>
@@ -1812,7 +1812,9 @@ const valueLabelPlugin = {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
 
-                let label = value;
+                let label = typeof value === 'number'
+                    ? value.toLocaleString('pt-BR',{maximumFractionDigits:1})
+                    : value;
 
                 if(dataset.money){
                     label =
@@ -2184,7 +2186,9 @@ function updateExecutiveTarget(){
     /* Meta proporcional aos dias do período selecionado */
     const target = DATA._periodTarget;
 
-    if(target === null || target === undefined || !target){
+    /* Meta 0 é meta de verdade (setores "Zerar"): qualquer HE fica acima dela,
+       igual à tela de Horas Extras. Só esconde quando não há meta cadastrada. */
+    if(target === null || target === undefined){
         targetBlock.style.display = 'none';
         normalCaption.style.display = 'block';
         card.classList.add('petroleum');
@@ -2658,7 +2662,7 @@ function renderHEManagementTable(){
             tr.innerHTML = `
                 <td class="strong">${item.name}</td>
                 <td class="numeric">${targetText}</td>
-                <td class="numeric strong">${item.hours} h</td>
+                <td class="numeric strong">${Number(item.hours).toLocaleString('pt-BR')} h</td>
                 <td class="numeric">${deviationText}</td>
                 <td class="numeric">${attainmentText}</td>
                 <td>${statusHTML}</td>
@@ -2720,7 +2724,7 @@ function selectHEManagement(name){
         name;
 
     document.getElementById('heSelectedHours').textContent =
-        management.hours+' h';
+        Number(management.hours).toLocaleString('pt-BR')+' h';
 
     document.getElementById('heSelectedShare').textContent =
         formatPercent(management.share);
@@ -3482,7 +3486,7 @@ function renderLunchPareto(){
         lunchParetoMode === 'less'
         ? 'Concentração dos intervalos inferiores a 1 hora dentro da gerência selecionada'
         : lunchParetoMode === 'more'
-            ? 'Concentração dos intervalos superiores a 1 hora dentro da gerência selecionada'
+            ? 'Concentração dos intervalos superiores a 1h05 dentro da gerência selecionada'
             : 'Concentração do total de ocorrências dentro da gerência selecionada';
 
     if(lunchParetoChart){
@@ -3932,7 +3936,7 @@ function renderHEEmployees(){
             <td>
                 <button
                     class="action"
-                    onclick="openHEDrawer(${jsArg(item.name)},${jsArg(item.sector)})"
+                    onclick="openHEDrawer(${jsArg(item.cracha)},${jsArg(item.sector)})"
                 >
                     Ver histórico
                 </button>
@@ -4047,7 +4051,7 @@ function renderInterEmployees(){
             <td>
                 <button
                     class="action"
-                    onclick="openInterDrawer(${jsArg(item.name)},${jsArg(item.sector)})"
+                    onclick="openInterDrawer(${jsArg(item.cracha)},${jsArg(item.sector)})"
                 >
                     Ver histórico
                 </button>
@@ -4164,7 +4168,7 @@ function renderLunchEmployees(){
             <td>
                 <button
                     class="action"
-                    onclick="openLunchDrawer(${jsArg(item.name)},${jsArg(item.sector)})"
+                    onclick="openLunchDrawer(${jsArg(item.cracha)},${jsArg(item.sector)})"
                 >
                     Ver histórico
                 </button>
@@ -4179,12 +4183,13 @@ function renderLunchEmployees(){
    DRAWER · HORAS EXTRAS
 ========================================================= */
 
-function openHEDrawer(name,sector){
+function openHEDrawer(cracha,sector){
 
+    /* busca pelo crachá: dois colaboradores podem ter o mesmo nome */
     const employee =
         (
             DATA.overtime.employees[sector] || []
-        ).find(item=>item.name === name);
+        ).find(item=>String(item.cracha) === String(cracha));
 
     if(!employee){
         return;
@@ -4240,12 +4245,13 @@ function openHEDrawer(name,sector){
    DRAWER · INTERJORNADA
 ========================================================= */
 
-function openInterDrawer(name,sector){
+function openInterDrawer(cracha,sector){
 
+    /* busca pelo crachá: dois colaboradores podem ter o mesmo nome */
     const employee =
         (
             DATA.interjourney.employees[sector] || []
-        ).find(item=>item.name === name);
+        ).find(item=>String(item.cracha) === String(cracha));
 
     if(!employee){
         return;
@@ -4305,12 +4311,13 @@ function openInterDrawer(name,sector){
    DRAWER · ALMOÇO
 ========================================================= */
 
-function openLunchDrawer(name,sector){
+function openLunchDrawer(cracha,sector){
 
+    /* busca pelo crachá: dois colaboradores podem ter o mesmo nome */
     const employee =
         (
             DATA.lunch.employees[sector] || []
-        ).find(item=>item.name === name);
+        ).find(item=>String(item.cracha) === String(cracha));
 
     if(!employee){
         return;
@@ -4461,10 +4468,7 @@ function handleCompanyChange(){
         processRawData(BASES_RESULT, METAS_RESULT || {cols:[],rows:[]});
         initializeDashboard();
     } else {
-        updateExecutiveTarget();
-        resetDrillDowns();
-        renderHEManagementTable();
-        if(currentScreen === 'executive') renderExecutiveHEChart();
+        waitForFreshData();
     }
 }
 
@@ -4555,9 +4559,9 @@ function handlePeriodChange(){
     if(BASES_RESULT){
         processRawData(BASES_RESULT, METAS_RESULT || {cols:[],rows:[]});
         initializeDashboard();
+    } else {
+        waitForFreshData();
     }
-    /* Se os dados ainda estão chegando, eles serão processados
-       automaticamente com o período escolhido. */
 }
 
 ['dateStart','dateEnd'].forEach(id=>{
@@ -4571,6 +4575,7 @@ function handlePeriodChange(){
 
 function initializeDashboard(){
 
+    if(typeof closeDrawer === 'function') closeDrawer();
     updateExecutiveTarget();
     updateExecutiveCards();
     renderExecutiveCharts();
@@ -4596,8 +4601,9 @@ const SHEET_ID = '1CBhv0R723L8pyni9KfMYWfSxV-Oa93XfzDWK-94ISU4';
 
 /* Colunas necessárias para "Bases pontos" (evita transferir 45 colunas desnecessárias).
    Ordem retornada → nova posição usada em processRawData:
-   C=0 D=1 F=2 H=3 I=4 AB=5 AD=6 AF=7 AI=8 G=9 AL=10 AN=11 AP=12 AQ=13 AS=14 AH=15 AT=16 */
-const BASES_SELECT = 'SELECT C,D,F,H,I,AB,AD,AF,AI,G,AL,AN,AP,AQ,AS,AH,AT WHERE C IS NOT NULL';
+   C=0 D=1 F=2 H=3 I=4 AB=5 AD=6 AF=7 AI=8 G=9 AL=10 AN=11 AP=12 AQ=13 AS=14 AH=15 AT=16
+   J=17 K=18 L=19 (Saída 2, Entrada 3, Saída 3 — usadas para contar as batidas do dia) */
+const BASES_SELECT = 'SELECT C,D,F,H,I,AB,AD,AF,AI,G,AL,AN,AP,AQ,AS,AH,AT,J,K,L WHERE C IS NOT NULL';
 
 /* ── Helpers ── */
 
@@ -4618,20 +4624,21 @@ function parseTime(val){
     return h + m/60;
 }
 
+/* Formatação em minutos inteiros — evita "10h 60min" por arredondamento */
 function formatIntervalStr(h){
-    const hh = Math.floor(h);
-    const mm = Math.round((h-hh)*60);
+    const t  = Math.round(h*60);
+    const hh = Math.floor(t/60);
+    const mm = t % 60;
     return hh+'h '+String(mm).padStart(2,'0')+'min';
 }
 
 function formatDurationStr(h){
-    if(h <= 0) return '0 min';
-    if(h >= 1){
-        const hh = Math.floor(h);
-        const mm = Math.round((h-hh)*60);
-        return hh+'h '+String(mm).padStart(2,'0')+'min';
+    const t = Math.round(h*60);
+    if(t <= 0) return '0 min';
+    if(t >= 60){
+        return Math.floor(t/60)+'h '+String(t%60).padStart(2,'0')+'min';
     }
-    return Math.round(h*60)+' min';
+    return t+' min';
 }
 
 function formatDateStr(dateStr){
@@ -4707,7 +4714,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '1.6';
+const APP_VERSION = '1.8';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
@@ -4874,16 +4881,32 @@ async function loadAndProcess(forceRefresh){
     await _fetchAndProcess();
 }
 
+/* Filtro trocado enquanto a tela ainda mostra o cache (dados brutos não chegaram):
+   cobre a tela com "Recalculando…" até os dados chegarem, em vez de deixar os
+   números da seleção anterior sob o filtro novo. */
+let PENDING_FILTER = false, FETCH_IN_FLIGHT = false;
+function waitForFreshData(){
+    PENDING_FILTER = true;
+    setLoadingText('Recalculando com o novo filtro…');
+    showLoading(true);
+    if(!FETCH_IN_FLIGHT) _refreshInBackground();
+}
+
 async function _refreshInBackground(){
     try{
         await _fetchAndProcess(true);
         console.log('[Dashboard] cache atualizado em segundo plano');
     }catch(e){
         console.warn('[Dashboard] atualização em segundo plano falhou:', e.message);
+        if(PENDING_FILTER){
+            PENDING_FILTER = false;
+            showError('Não foi possível recalcular com o novo filtro: ' + e.message);
+        }
     }
 }
 
 async function _fetchAndProcess(background){
+    FETCH_IN_FLIGHT = true;
     if(!background){
         setLoadingText('Conectando ao Google Sheets…');
         showLoading(true);
@@ -4910,6 +4933,7 @@ async function _fetchAndProcess(background){
         lcSave(DATA, MONTHS_DYNAMIC);
 
         if(!background){
+            PENDING_FILTER = false;
             showLoading(false);
             initializeDashboard();
             injectRefreshButton(0);
@@ -4918,12 +4942,15 @@ async function _fetchAndProcess(background){
             /* Atualiza a UI sem mostrar overlay de loading */
             initializeDashboard();
             injectRefreshButton(0);
+            if(PENDING_FILTER){ PENDING_FILTER = false; showLoading(false); }
         }
     }catch(err){
         if(!background){
             showError('Erro ao carregar: '+err.message);
         }
         throw err;
+    }finally{
+        FETCH_IN_FLIGHT = false;
     }
 }
 
@@ -5031,13 +5058,17 @@ function processRawData(basesResult, metasResult){
             if(v !== undefined && v !== null){ total += v * days / mEnd.getDate(); found = true; }
             m++; if(m > 11){ m = 0; y++; }
         }
-        return found ? Math.round(total) : null;
+        if(!found) return null;
+        /* meta pequena num período curto não pode virar 0 no arredondamento */
+        const r = Math.round(total);
+        return (r === 0 && total > 0) ? Math.round(total*10)/10 : r;
     }
 
     /* ── Leitura das linhas ──
        Índices após SELECT C,D,F,H,I,AB,AD,AF,AI,G,AL,AN,AP,AQ,AS,AH,AT:
        0=Data 1=Crachá 2=Nome 3=Saída1 4=Entrada2 5=HETotal 6=HEFlag 7=AlmDur
-       8=HorárioSaída 9=Entrada1 10=FaltaInterjornada 11=MêsN° 12=Setor 13=Gerente 14=FaltaAlmoço(<1h) 15=ExcessoAlmoço planilha(>2h, não usado) 16=Empresa */
+       8=HorárioSaída 9=Entrada1 10=FaltaInterjornada 11=MêsN° 12=Setor 13=Gerente 14=FaltaAlmoço(<1h) 15=ExcessoAlmoço planilha(>2h, não usado) 16=Empresa
+       17=Saída2 18=Entrada3 19=Saída3 */
     const dataRows = (basesResult && basesResult.rows) ? basesResult.rows : [];
     let rows = [];
     const monthKeys = new Set();
@@ -5098,12 +5129,31 @@ function processRawData(basesResult, metasResult){
             lunchEnd:   String(row[4]||'').trim(),
             exitStr:    String(row[8]||'').trim(),
             entryStr:   String(row[9]||'').trim(),
-            alFlag: +row[10] || 0,
+            /* nº de batidas entre Entrada 1 e Saída 3 (as mesmas que a planilha usa para o Horário Saída) */
+            punches: [9,3,4,17,18,19].filter(i=>row[i]!==null && row[i]!==undefined && String(row[i]).trim()!=='').length,
             inPeriod: inP(dateObj)
         });
     });
 
     rows = rows.filter(Boolean);
+
+    /* Empresa filtrada: a aba Metas não tem coluna de empresa, então a meta da
+       empresa (e de cada gerência dentro dela) é a soma das metas dos setores
+       que aparecem nos registros dessa empresa. */
+    if(selCompany !== 'Consolidado'){
+        const setoresEmp = new Set(rows.map(r=>r.setor));
+        Object.keys(gerenteMeta).forEach(k=>delete gerenteMeta[k]);
+        Object.keys(companyMeta).forEach(k=>delete companyMeta[k]);
+        Object.entries(setorMeta).forEach(([setor,byMonth])=>{
+            if(!setoresEmp.has(setor)) return;
+            const g = metaGerBySetor[setor] || '';
+            gerenteMeta[g] = gerenteMeta[g] || {};
+            Object.entries(byMonth).forEach(([mn,h])=>{
+                gerenteMeta[g][mn] = (gerenteMeta[g][mn]||0) + h;
+                companyMeta[mn]    = (companyMeta[mn]||0)    + h;
+            });
+        });
+    }
 
     /* Último dia com registro na base */
     let lastData = null;
@@ -5166,8 +5216,11 @@ function processRawData(basesResult, metasResult){
             if(!empLunchData[r.setor]) empLunchData[r.setor] = {};
             const e = empLunchData[r.setor][r.cracha] =
                 empLunchData[r.setor][r.cracha] || {name:r.name,less:0,more:0,minDur:999,maxDur:0,history:[]};
-            if(r.lunchLess){ e.less++; if(r.lunchDur>0 && r.lunchDur<e.minDur) e.minDur=r.lunchDur; }
-            if(r.lunchMore){ e.more++; if(r.lunchDur>e.maxDur) e.maxDur=r.lunchDur; }
+            if(r.lunchLess) e.less++;
+            if(r.lunchMore) e.more++;
+            /* menor e maior duração entre todas as ocorrências do colaborador */
+            if(r.lunchDur>0 && r.lunchDur<e.minDur) e.minDur=r.lunchDur;
+            if(r.lunchDur>e.maxDur) e.maxDur=r.lunchDur;
             e.history.push({date:r.datePt,start:r.lunchStart,end:r.lunchEnd,
                 duration:r.lunchDur>0?formatDurationStr(r.lunchDur):'—',
                 type:r.lunchLess?'less':'more'});
@@ -5180,14 +5233,15 @@ function processRawData(basesResult, metasResult){
     let interOccP = 0, interMinP = 999;
 
     Object.entries(empInterRows).forEach(([cracha,list])=>{
-        list.sort((a,b)=>a.dateObj-b.dateObj);
-        for(let i=1;i<list.length;i++){
-            const cur  = list[i];
-            const prev = list[i-1];
-
-            /* Calcula o intervalo real: saída anterior → entrada atual.
-               Só processa quando ambos os horários estão disponíveis. */
-            if(!prev.exitStr || !cur.entryStr) continue;
+        /* Só dias trabalhados com batidas completas (nº par, ao menos entrada e saída).
+           Dia com 1 ou 3 batidas tem horário de saída incerto e é ignorado. */
+        const work = list
+            .filter(r=>r.entryStr && r.exitStr && r.punches >= 2 && r.punches % 2 === 0)
+            .sort((a,b)=>a.dateObj-b.dateObj);
+        const toMin = s => Math.round(parseTime(s)*60);
+        for(let i=1;i<work.length;i++){
+            const cur  = work[i];
+            const prev = work[i-1];
 
             const dayDiff = Math.round((
                 new Date(cur.dateObj.getFullYear(),cur.dateObj.getMonth(),cur.dateObj.getDate()) -
@@ -5195,11 +5249,20 @@ function processRawData(basesResult, metasResult){
             )/86400000);
             if(dayDiff < 1 || dayDiff > 3) continue;
 
-            let intv = dayDiff*24 + parseTime(cur.entryStr) - parseTime(prev.exitStr);
-            if(intv < 0) intv += 24;
+            /* Conta em minutos inteiros (em horas fracionadas, 11h00 exatas às vezes
+               vira 10,9999… e seria contada como infração).
+               Turno que vira a meia-noite: saída menor que a entrada do mesmo dia
+               significa que a saída foi no dia seguinte. */
+            let exitMin = toMin(prev.exitStr);
+            if(exitMin < toMin(prev.entryStr)) exitMin += 1440;
+            const intvMin = dayDiff*1440 + toMin(cur.entryStr) - exitMin;
 
-            /* Infração: intervalo inferior a 11 horas */
-            if(intv >= 11) continue;
+            /* Intervalo negativo = batidas sobrepostas (erro de registro): não conta */
+            if(intvMin < 0) continue;
+
+            /* Infração: intervalo inferior a 11 horas (660 min) */
+            if(intvMin >= 660) continue;
+            const intv = intvMin / 60;
 
             execInter[cur.ym] = (execInter[cur.ym]||0) + 1;
             if(!cur.inPeriod) continue;
@@ -5219,7 +5282,10 @@ function processRawData(basesResult, metasResult){
             if(!e.lastDate || dateKey(cur.datePt) > dateKey(e.lastDate)) e.lastDate = cur.datePt;
             e.history.push({
                 date:cur.datePt,
-                exit:prev.datePt+' · '+prev.exitStr,
+                exit:(exitMin >= 1440
+                        ? (d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear())(
+                            new Date(prev.dateObj.getFullYear(),prev.dateObj.getMonth(),prev.dateObj.getDate()+1))
+                        : prev.datePt)+' · '+prev.exitStr,
                 entry:cur.datePt+' · '+cur.entryStr,
                 interval:formatIntervalStr(intv)
             });
@@ -5227,8 +5293,11 @@ function processRawData(basesResult, metasResult){
     });
 
     /* ── Visões por gerência e setor (período) ── */
+    /* Abaixo de 1 h mantém uma casa decimal: com arredondamento inteiro, setores
+       pequenos sumiam do Pareto enquanto a gerência mostrava horas */
+    const roundH = h => h >= 1 ? Math.round(h) : Math.round(h*10)/10;
     const mgmtHEList = Object.entries(mgmtHE)
-        .map(([name,h])=>({ name, hours:Math.round(h), target:periodMeta(gerenteMeta[name]) }))
+        .map(([name,h])=>({ name, hours:roundH(h), target:periodMeta(gerenteMeta[name]) }))
         .filter(m=>m.hours>0)
         .sort((a,b)=>heWorstFirst(a,b));
     const totalMgmtH = mgmtHEList.reduce((s,m)=>s+m.hours,0);
@@ -5236,7 +5305,7 @@ function processRawData(basesResult, metasResult){
 
     const sectorHEByMgmt = {};
     Object.entries(sectorHE).forEach(([setor,h])=>{
-        const hours = Math.round(h);
+        const hours = roundH(h);
         if(!hours) return;
         const g = sectorGer[setor];
         (sectorHEByMgmt[g] = sectorHEByMgmt[g] || []).push({name:setor, hours, target:periodMeta(setorMeta[setor])});
@@ -5294,7 +5363,8 @@ function processRawData(basesResult, metasResult){
 
     DATA.overtime = { managements:mgmtHEList, sectors:sectorHEByMgmt, employees:{} };
     Object.entries(empHEData).forEach(([setor,emps])=>{
-        DATA.overtime.employees[setor] = Object.values(emps).map(e=>({
+        DATA.overtime.employees[setor] = Object.entries(emps).map(([cracha,e])=>({
+            cracha,
             name:e.name,
             hours:Math.round(e.heHours*10)/10,
             days:e.heDays,
@@ -5314,7 +5384,8 @@ function processRawData(basesResult, metasResult){
         employees:{}
     };
     Object.entries(empInterData).forEach(([setor,emps])=>{
-        DATA.interjourney.employees[setor] = Object.values(emps).map(e=>({
+        DATA.interjourney.employees[setor] = Object.entries(emps).map(([cracha,e])=>({
+            cracha,
             name:e.name,
             occurrences:e.occurrences,
             days:e.days.size,
@@ -5332,7 +5403,8 @@ function processRawData(basesResult, metasResult){
         employees:{}
     };
     Object.entries(empLunchData).forEach(([setor,emps])=>{
-        DATA.lunch.employees[setor] = Object.values(emps).map(e=>({
+        DATA.lunch.employees[setor] = Object.entries(emps).map(([cracha,e])=>({
+            cracha,
             name:e.name,
             less:e.less,
             more:e.more,
@@ -5482,7 +5554,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.6 · 06/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.8 · 06/10/2026</div>
 
 </body>
 </html>
