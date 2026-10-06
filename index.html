@@ -1707,6 +1707,8 @@ canvas{
 Chart.defaults.font.family = '"Montserrat", Arial, sans-serif';
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#73858D';
+/* Folga acima da maior coluna para o rótulo de valor não ser cortado */
+Chart.defaults.scales.linear.grace = '12%';
 
 const COLORS = {
     petroleum:'#003D58',
@@ -1821,11 +1823,14 @@ const valueLabelPlugin = {
                         );
                 }
 
-                ctx.fillText(
-                    label,
-                    element.x,
-                    element.y-6
-                );
+                /* Se ainda assim não couber acima da coluna, escreve dentro dela */
+                if(element.y - 6 - 12 < 0 && element.base - element.y > 18){
+                    ctx.fillStyle = '#fff';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(label, element.x, element.y + 4);
+                }else{
+                    ctx.fillText(label, element.x, element.y - 6);
+                }
 
                 ctx.restore();
             });
@@ -4702,7 +4707,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '1.4';
+const APP_VERSION = '1.5';
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
 const LC_TTL = 6 * 60 * 60 * 1000;
 /* limpa caches de versões anteriores */
@@ -5475,7 +5480,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.4 · 05/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.5 · 05/10/2026</div>
 
 </body>
 </html>
