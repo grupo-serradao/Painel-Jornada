@@ -4818,7 +4818,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '2.3';
+const APP_VERSION = '2.4';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
@@ -4918,7 +4918,7 @@ async function gvizPorteiro(sheet, query){
     if(!sessao){ exigirLogin(); throw new Error('auth'); }
     const resp = await chamarPorteiro({action:'data', token:sessao.token, sheet, query});
     if(!resp.ok){
-        if(resp.error === 'auth'){ exigirLogin('Sua sessão terminou. Entre novamente.'); throw new Error('auth'); }
+        if(resp.error === 'auth'){ exigirLogin('Sua sessão terminou. Entre novamente.', true); throw new Error('auth'); }
         throw new Error(resp.error || ('Falha ao ler "'+sheet+'"'));
     }
     if(resp.gz){
@@ -4926,6 +4926,24 @@ async function gvizPorteiro(sheet, query){
         return parseGvizTable(await descompactar(resp.gz));
     }
     return parseGvizTable(resp.table);
+}
+
+async function gvizPorteiroTudo(){
+    const sessao = lerSessao();
+    if(!sessao){ exigirLogin(); throw new Error('auth'); }
+    setLoadingText && setLoadingText('Buscando dados no servidor…');
+    const resp = await chamarPorteiro({action:'dataAll', token:sessao.token, requests:[
+        {sheet:'Bases pontos', query:BASES_SELECT}, {sheet:'Metas', query:'SELECT *'}]});
+    if(!resp.ok){
+        if(resp.error === 'auth'){ exigirLogin('Sua sessão terminou. Entre novamente.', true); throw new Error('auth'); }
+        throw new Error(resp.error || 'Falha ao buscar os dados');
+    }
+    setLoadingText && setLoadingText('Montando o painel…');
+    const bases = parseGvizTable(await descompactar(resp.gz['Bases pontos']));
+    let metas = {cols:[], rows:[]};
+    try{ metas = parseGvizTable(await descompactar(resp.gz['Metas'])); METAS_ERROR = null; }
+    catch(e){ METAS_ERROR = e.message; }
+    return {bases, metas};
 }
 
 /* resposta do porteiro: JSON compactado com gzip e codificado em base64 */
@@ -5056,11 +5074,17 @@ async function _fetchAndProcess(background){
         setLoadingText && setLoadingText('Lendo planilhas…');
         /* Metas é lida em paralelo; se falhar, o painel continua,
            mas mostra o motivo na página de Horas Extras. */
-        const metasPromise = gviz('Metas', 'SELECT *')
-            .then(r => { METAS_ERROR = null; return r; })
-            .catch(e => { METAS_ERROR = e.message; return {cols:[],rows:[]}; });
-        const bases = await gviz('Bases pontos', BASES_SELECT);
-        const metas = await metasPromise;
+        let bases, metas;
+        if(PORTEIRO_URL){
+            /* porteiro: base de pontos e metas numa chamada só */
+            ({bases, metas} = await gvizPorteiroTudo());
+        }else{
+            const metasPromise = gviz('Metas', 'SELECT *')
+                .then(r => { METAS_ERROR = null; return r; })
+                .catch(e => { METAS_ERROR = e.message; return {cols:[],rows:[]}; });
+            bases = await gviz('Bases pontos', BASES_SELECT);
+            metas = await metasPromise;
+        }
 
         /* Guarda para re-processar ao mudar período */
         BASES_RESULT = bases;
@@ -5737,9 +5761,9 @@ function loginPasso(passo){
     const foco = {email:'loginEmail', senha:'loginSenha', nova:'loginCode'}[passo];
     setTimeout(()=>document.getElementById(foco).focus(), 50);
 }
-function exigirLogin(msg){
+function exigirLogin(msg, limparDados){
     apagarSessao();
-    lcClear();
+    if(limparDados) lcClear();
     showLoading(false);
     document.getElementById('userChip').classList.remove('on');
     document.getElementById('loginOverlay').classList.add('open');
@@ -5759,7 +5783,7 @@ function entrou(r){
     ['loginSenha','loginCode','loginNova','loginNova2'].forEach(id=>document.getElementById(id).value='');
     loginMsg('');
     mostrarUsuario();
-    loadAndProcess(true);
+    loadAndProcess();
 }
 /* 1. e-mail → a pessoa tem senha? (se não tiver, o porteiro já manda o código) */
 function loginContinuar(){
@@ -5825,7 +5849,7 @@ function mostrarUsuario(){
 async function sairDoPainel(){
     const s = lerSessao();
     if(s){ try{ await chamarPorteiro({action:'logout', token:s.token}); }catch(e){} }
-    exigirLogin('Você saiu do painel.');
+    exigirLogin('Você saiu do painel.', true);
     document.getElementById('loginMsg').className = '';
     document.getElementById('loginEmail').value = s ? s.email : '';
 }
@@ -5846,7 +5870,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.3 · 07/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.4 · 07/10/2026</div>
 
 </body>
 </html>
