@@ -4818,7 +4818,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '2.2';
+const APP_VERSION = '2.3';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
@@ -5687,15 +5687,18 @@ function updateExecutiveCards(){
 /* =========================================================
    LOGIN (código por e-mail, validado pelo Apps Script)
 ========================================================= */
+/* Sessão só desta aba (sessionStorage): atualizar a página mantém o login,
+   fechar a aba ou o navegador desloga. O porteiro limita a sessão a 8 h. */
+try{ localStorage.removeItem(SESSAO_KEY); }catch(e){}   /* sessões antigas, de quando o login durava dias */
 function lerSessao(){
     try{
-        const o = JSON.parse(localStorage.getItem(SESSAO_KEY) || 'null');
+        const o = JSON.parse(sessionStorage.getItem(SESSAO_KEY) || 'null');
         if(o && o.token && o.expira > Date.now()) return o;
     }catch(e){}
     return null;
 }
-function gravarSessao(o){ try{ localStorage.setItem(SESSAO_KEY, JSON.stringify(o)); }catch(e){} }
-function apagarSessao(){ try{ localStorage.removeItem(SESSAO_KEY); }catch(e){} }
+function gravarSessao(o){ try{ sessionStorage.setItem(SESSAO_KEY, JSON.stringify(o)); }catch(e){} }
+function apagarSessao(){ try{ sessionStorage.removeItem(SESSAO_KEY); }catch(e){} }
 
 async function chamarPorteiro(payload){
     let r;
@@ -5843,7 +5846,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.2 · 07/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.3 · 07/10/2026</div>
 
 </body>
 </html>
