@@ -1033,21 +1033,34 @@ canvas{
     <form class="login-card" id="loginForm" autocomplete="on" novalidate>
         <div class="login-kicker">Frigorífico Serradão</div>
         <h1 id="loginTitle">Painel de Jornada</h1>
-        <p class="login-sub" id="loginSub">Acesso restrito. Informe seu e-mail para receber um código de entrada.</p>
+        <p class="login-sub" id="loginSub">Acesso restrito. Entre com seu e-mail e senha.</p>
 
         <div id="loginStepEmail">
             <label for="loginEmail">E-mail</label>
-            <input id="loginEmail" type="email" inputmode="email" autocomplete="email" placeholder="nome@empresa.com.br">
-            <button class="login-btn" id="loginSend" type="submit">Enviar código</button>
+            <input id="loginEmail" type="email" inputmode="email" autocomplete="username" placeholder="nome@empresa.com.br">
+            <button class="login-btn" id="loginContinue" type="submit">Continuar</button>
         </div>
 
-        <div id="loginStepCode" style="display:none">
-            <label for="loginCode">Código de 6 dígitos</label>
-            <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
+        <div id="loginStepSenha" style="display:none">
+            <label for="loginSenha">Senha</label>
+            <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Sua senha">
             <button class="login-btn" id="loginEnter" type="submit">Entrar</button>
             <div class="login-links">
                 <button type="button" onclick="loginVoltar()">Usar outro e-mail</button>
-                <button type="button" onclick="loginReenviar()">Reenviar código</button>
+                <button type="button" onclick="loginEsqueci()">Esqueci minha senha</button>
+            </div>
+        </div>
+
+        <div id="loginStepNova" style="display:none">
+            <label for="loginCode">Código recebido por e-mail</label>
+            <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
+            <label for="loginNova" style="margin-top:14px">Crie sua senha (mínimo 6 caracteres)</label>
+            <input id="loginNova" type="password" autocomplete="new-password" placeholder="Nova senha">
+            <input id="loginNova2" type="password" autocomplete="new-password" placeholder="Repita a senha" style="margin-top:8px">
+            <button class="login-btn" id="loginCreate" type="submit">Criar senha e entrar</button>
+            <div class="login-links">
+                <button type="button" onclick="loginVoltar()">Usar outro e-mail</button>
+                <button type="button" onclick="loginEsqueci()">Reenviar código</button>
             </div>
         </div>
 
@@ -4805,7 +4818,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
@@ -5683,19 +5696,23 @@ async function chamarPorteiro(payload){
     return r.json();
 }
 
-let loginEmailAtual = '';
+let loginEmailAtual = '', loginPassoAtual = 'email';
 function loginMsg(txt, erro){
     const el = document.getElementById('loginMsg');
     el.textContent = txt || '';
     el.className = erro ? 'erro' : '';
 }
 function loginPasso(passo){
+    loginPassoAtual = passo;
     document.getElementById('loginStepEmail').style.display = passo === 'email' ? '' : 'none';
-    document.getElementById('loginStepCode').style.display  = passo === 'code'  ? '' : 'none';
-    document.getElementById('loginSub').textContent = passo === 'email'
-        ? 'Acesso restrito. Informe seu e-mail para receber um código de entrada.'
-        : 'Enviamos um código para ' + loginEmailAtual + '. Ele vale por 10 minutos.';
-    setTimeout(()=>document.getElementById(passo === 'email' ? 'loginEmail' : 'loginCode').focus(), 50);
+    document.getElementById('loginStepSenha').style.display = passo === 'senha' ? '' : 'none';
+    document.getElementById('loginStepNova').style.display  = passo === 'nova'  ? '' : 'none';
+    document.getElementById('loginSub').textContent =
+        passo === 'email' ? 'Acesso restrito. Entre com seu e-mail e senha.' :
+        passo === 'senha' ? loginEmailAtual :
+        'Enviamos um código para ' + loginEmailAtual + '. Use-o para criar sua senha (vale 10 minutos).';
+    const foco = {email:'loginEmail', senha:'loginSenha', nova:'loginCode'}[passo];
+    setTimeout(()=>document.getElementById(foco).focus(), 50);
 }
 function exigirLogin(msg){
     apagarSessao();
@@ -5706,47 +5723,73 @@ function exigirLogin(msg){
     loginPasso('email');
     loginMsg(msg || '', !!msg);
 }
-async function loginPedirCodigo(){
+async function comBotao(id, txt, fn){
+    const btn = document.getElementById(id);
+    btn.disabled = true; loginMsg(txt);
+    try{ await fn(); }
+    catch(e){ loginMsg(e.message, true); }
+    finally{ btn.disabled = false; }
+}
+function entrou(r){
+    gravarSessao({token:r.token, email:r.email, nome:r.nome, expira:r.expira});
+    document.getElementById('loginOverlay').classList.remove('open');
+    ['loginSenha','loginCode','loginNova','loginNova2'].forEach(id=>document.getElementById(id).value='');
+    loginMsg('');
+    mostrarUsuario();
+    loadAndProcess(true);
+}
+/* 1. e-mail → a pessoa tem senha? (se não tiver, o porteiro já manda o código) */
+function loginContinuar(){
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ loginMsg('Informe um e-mail válido.', true); return; }
-    const btn = document.getElementById('loginSend');
-    btn.disabled = true; loginMsg('Enviando…');
-    try{
-        const r = await chamarPorteiro({action:'requestCode', email});
-        if(!r.ok){ loginMsg(r.error || 'Não foi possível enviar o código.', true); return; }
+    return comBotao('loginContinue', 'Verificando…', async ()=>{
+        const r = await chamarPorteiro({action:'start', email});
+        if(!r.ok){ loginMsg(r.error || 'Não foi possível continuar.', true); return; }
         loginEmailAtual = email;
-        document.getElementById('loginCode').value = '';
-        loginPasso('code');
-        loginMsg(r.message || '');
-    }catch(e){ loginMsg(e.message, true); }
-    finally{ btn.disabled = false; }
+        if(r.hasPassword){ loginPasso('senha'); loginMsg(''); }
+        else{ loginPasso('nova'); loginMsg(''); }
+    });
 }
-async function loginConferir(){
-    const code = document.getElementById('loginCode').value.replace(/\D/g,'');
+/* 2a. senha */
+function loginEntrar(){
+    const senha = document.getElementById('loginSenha').value;
+    if(!senha){ loginMsg('Digite sua senha.', true); return; }
+    return comBotao('loginEnter', 'Entrando…', async ()=>{
+        const r = await chamarPorteiro({action:'login', email:loginEmailAtual, password:senha, agent:navigator.userAgent});
+        if(!r.ok){ loginMsg(r.error || 'Não foi possível entrar.', true); return; }
+        entrou(r);
+    });
+}
+/* 2b. código + senha nova (primeiro acesso ou esqueci) */
+function loginCriarSenha(){
+    const code  = document.getElementById('loginCode').value.replace(/\D/g,'');
+    const nova  = document.getElementById('loginNova').value;
+    const nova2 = document.getElementById('loginNova2').value;
     if(code.length !== 6){ loginMsg('Digite os 6 dígitos do código.', true); return; }
-    const btn = document.getElementById('loginEnter');
-    btn.disabled = true; loginMsg('Conferindo…');
+    if(nova.length < 6){ loginMsg('A senha precisa ter pelo menos 6 caracteres.', true); return; }
+    if(nova !== nova2){ loginMsg('As duas senhas não são iguais.', true); return; }
+    return comBotao('loginCreate', 'Salvando…', async ()=>{
+        const r = await chamarPorteiro({action:'setPassword', email:loginEmailAtual, code, password:nova, agent:navigator.userAgent});
+        if(!r.ok){ loginMsg(r.error || 'Não foi possível criar a senha.', true); return; }
+        entrou(r);
+    });
+}
+async function loginEsqueci(){
+    if(!loginEmailAtual){ loginPasso('email'); return; }
+    loginMsg('Enviando código…');
     try{
-        const r = await chamarPorteiro({action:'verify', email:loginEmailAtual, code,
-                                        agent:navigator.userAgent});
-        if(!r.ok){ loginMsg(r.error || 'Código incorreto.', true); return; }
-        gravarSessao({token:r.token, email:r.email, nome:r.nome, expira:r.expira});
-        document.getElementById('loginOverlay').classList.remove('open');
+        const r = await chamarPorteiro({action:'forgot', email:loginEmailAtual});
+        if(!r.ok){ loginMsg(r.error || 'Não foi possível enviar o código.', true); return; }
+        loginPasso('nova');
         loginMsg('');
-        mostrarUsuario();
-        loadAndProcess(true);
     }catch(e){ loginMsg(e.message, true); }
-    finally{ btn.disabled = false; }
 }
 function loginVoltar(){ loginPasso('email'); loginMsg(''); }
-async function loginReenviar(){
-    document.getElementById('loginEmail').value = loginEmailAtual;
-    await loginPedirCodigo();
-}
 document.getElementById('loginForm').addEventListener('submit', e=>{
     e.preventDefault();
-    if(document.getElementById('loginStepCode').style.display === 'none') loginPedirCodigo();
-    else loginConferir();
+    if(loginPassoAtual === 'email') loginContinuar();
+    else if(loginPassoAtual === 'senha') loginEntrar();
+    else loginCriarSenha();
 });
 function mostrarUsuario(){
     const s = lerSessao();
@@ -5761,6 +5804,7 @@ async function sairDoPainel(){
     if(s){ try{ await chamarPorteiro({action:'logout', token:s.token}); }catch(e){} }
     exigirLogin('Você saiu do painel.');
     document.getElementById('loginMsg').className = '';
+    document.getElementById('loginEmail').value = s ? s.email : '';
 }
 
 /* ── Carga inicial ── */
@@ -5779,7 +5823,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.0 · 06/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.1 · 07/10/2026</div>
 
 </body>
 </html>
