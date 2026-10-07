@@ -4818,7 +4818,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.2';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
@@ -4872,7 +4872,7 @@ function parseGvizTable(table){
     const cols = (table.cols||[]).map(c=>({label:c.label, type:c.type}));
 
     const rows = (table.rows||[]).map(r=>
-        (r.c||[]).map((c,i)=>{
+        (Array.isArray(r) ? r.map(v=>v==null?null:{v}) : (r.c||[])).map((c,i)=>{
             if(!c || c.v===null || c.v===undefined) return null;
             const type = cols[i] ? cols[i].type : '';
             /* Date → "M/D/YYYY" (igual ao formato antigo) */
@@ -4921,7 +4921,19 @@ async function gvizPorteiro(sheet, query){
         if(resp.error === 'auth'){ exigirLogin('Sua sessão terminou. Entre novamente.'); throw new Error('auth'); }
         throw new Error(resp.error || ('Falha ao ler "'+sheet+'"'));
     }
+    if(resp.gz){
+        setLoadingText && setLoadingText('Descompactando dados…');
+        return parseGvizTable(await descompactar(resp.gz));
+    }
     return parseGvizTable(resp.table);
+}
+
+/* resposta do porteiro: JSON compactado com gzip e codificado em base64 */
+async function descompactar(b64){
+    const bin = atob(b64), bytes = new Uint8Array(bin.length);
+    for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const txt = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    return JSON.parse(txt);
 }
 
 function gvizPublico(sheet, query){
@@ -5687,13 +5699,21 @@ function apagarSessao(){ try{ localStorage.removeItem(SESSAO_KEY); }catch(e){} }
 
 async function chamarPorteiro(payload){
     let r;
+    const ctrl = new AbortController();
+    const limite = setTimeout(()=>ctrl.abort(), 150000);
     try{
         /* text/plain evita a checagem prévia de CORS que o Apps Script não responde */
-        r = await fetch(PORTEIRO_URL, {method:'POST', body:JSON.stringify(payload),
+        r = await fetch(PORTEIRO_URL, {method:'POST', body:JSON.stringify(payload), signal:ctrl.signal,
                                        headers:{'Content-Type':'text/plain;charset=utf-8'}});
-    }catch(e){ throw new Error('Sem conexão com o servidor de acesso.'); }
+    }catch(e){
+        throw new Error(e.name === 'AbortError'
+            ? 'O servidor de acesso demorou mais de 2 minutos para responder.'
+            : 'Sem conexão com o servidor de acesso (' + e.message + ').');
+    }finally{ clearTimeout(limite); }
     if(!r.ok) throw new Error('Servidor de acesso respondeu ' + r.status + '.');
-    return r.json();
+    const txt = await r.text();
+    try{ return JSON.parse(txt); }
+    catch(e){ throw new Error('Resposta inesperada do servidor de acesso: ' + txt.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,160)); }
 }
 
 let loginEmailAtual = '', loginPassoAtual = 'email';
@@ -5823,7 +5843,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.1 · 07/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.2 · 07/10/2026</div>
 
 </body>
 </html>
