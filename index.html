@@ -1012,6 +1012,7 @@ canvas{
     background:none; border:none; padding:0; cursor:pointer;
     font:600 12px Montserrat,Arial,sans-serif; color:var(--petroleum); text-decoration:underline;
 }
+.login-hint{ margin-top:12px; font-size:12px; color:var(--text-2); text-align:center; }
 #loginMsg{ min-height:18px; margin-top:12px; font-size:12px; line-height:1.4; color:var(--text-2); }
 #loginMsg.erro{ color:var(--red-dark); }
 .login-foot{ margin-top:18px; font-size:11px; color:var(--muted-2); text-align:center; }
@@ -1038,15 +1039,12 @@ canvas{
         <div id="loginStepEmail">
             <label for="loginEmail">E-mail</label>
             <input id="loginEmail" type="email" inputmode="email" autocomplete="username" placeholder="nome@empresa.com.br">
-            <button class="login-btn" id="loginContinue" type="submit">Continuar</button>
-        </div>
-
-        <div id="loginStepSenha" style="display:none">
-            <label for="loginSenha">Senha</label>
+            <label for="loginSenha" style="margin-top:14px">Senha</label>
             <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Sua senha">
             <button class="login-btn" id="loginEnter" type="submit">Entrar</button>
+            <div class="login-hint">Primeiro acesso? Preencha só o e-mail e clique em Entrar.</div>
             <div class="login-links">
-                <button type="button" onclick="loginVoltar()">Usar outro e-mail</button>
+                <span></span>
                 <button type="button" onclick="loginEsqueci()">Esqueci minha senha</button>
             </div>
         </div>
@@ -1059,7 +1057,7 @@ canvas{
             <input id="loginNova2" type="password" autocomplete="new-password" placeholder="Repita a senha" style="margin-top:8px">
             <button class="login-btn" id="loginCreate" type="submit">Criar senha e entrar</button>
             <div class="login-links">
-                <button type="button" onclick="loginVoltar()">Usar outro e-mail</button>
+                <button type="button" onclick="loginVoltar()">Voltar</button>
                 <button type="button" onclick="loginEsqueci()">Reenviar código</button>
             </div>
         </div>
@@ -4818,7 +4816,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '2.4';
+const APP_VERSION = '2.5';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
@@ -5752,13 +5750,17 @@ function loginMsg(txt, erro){
 function loginPasso(passo){
     loginPassoAtual = passo;
     document.getElementById('loginStepEmail').style.display = passo === 'email' ? '' : 'none';
-    document.getElementById('loginStepSenha').style.display = passo === 'senha' ? '' : 'none';
     document.getElementById('loginStepNova').style.display  = passo === 'nova'  ? '' : 'none';
-    document.getElementById('loginSub').textContent =
-        passo === 'email' ? 'Acesso restrito. Entre com seu e-mail e senha.' :
-        passo === 'senha' ? loginEmailAtual :
-        'Enviamos um código para ' + loginEmailAtual + '. Use-o para criar sua senha (vale 10 minutos).';
-    const foco = {email:'loginEmail', senha:'loginSenha', nova:'loginCode'}[passo];
+    document.getElementById('loginSub').textContent = passo === 'email'
+        ? 'Acesso restrito. Entre com seu e-mail e senha.'
+        : 'Enviamos um código para ' + loginEmailAtual + '. Use-o para criar sua senha (vale 10 minutos).';
+    let foco = 'loginCode';
+    if(passo === 'email'){
+        /* e-mail lembrado: no dia a dia basta digitar a senha */
+        const em = document.getElementById('loginEmail');
+        if(!em.value){ try{ em.value = localStorage.getItem('pj_email') || ''; }catch(e){} }
+        foco = em.value ? 'loginSenha' : 'loginEmail';
+    }
     setTimeout(()=>document.getElementById(foco).focus(), 50);
 }
 function exigirLogin(msg, limparDados){
@@ -5785,26 +5787,25 @@ function entrou(r){
     mostrarUsuario();
     loadAndProcess();
 }
-/* 1. e-mail → a pessoa tem senha? (se não tiver, o porteiro já manda o código) */
-function loginContinuar(){
+/* Tela única: com senha → entra; sem senha → primeiro acesso (manda o código) */
+function loginEntrarUnico(){
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const senha = document.getElementById('loginSenha').value;
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ loginMsg('Informe um e-mail válido.', true); return; }
-    return comBotao('loginContinue', 'Verificando…', async ()=>{
+    loginEmailAtual = email;
+    try{ localStorage.setItem('pj_email', email); }catch(e){}
+    return comBotao('loginEnter', senha ? 'Entrando…' : 'Verificando…', async ()=>{
+        if(senha){
+            const r = await chamarPorteiro({action:'login', email, password:senha, agent:navigator.userAgent});
+            if(r.ok){ entrou(r); return; }
+            if(!r.needSetup){ loginMsg(r.error || 'Não foi possível entrar.', true); return; }
+            /* digitou senha mas ainda não criou uma: segue como primeiro acesso */
+        }
         const r = await chamarPorteiro({action:'start', email});
         if(!r.ok){ loginMsg(r.error || 'Não foi possível continuar.', true); return; }
-        loginEmailAtual = email;
-        if(r.hasPassword){ loginPasso('senha'); loginMsg(''); }
-        else{ loginPasso('nova'); loginMsg(''); }
-    });
-}
-/* 2a. senha */
-function loginEntrar(){
-    const senha = document.getElementById('loginSenha').value;
-    if(!senha){ loginMsg('Digite sua senha.', true); return; }
-    return comBotao('loginEnter', 'Entrando…', async ()=>{
-        const r = await chamarPorteiro({action:'login', email:loginEmailAtual, password:senha, agent:navigator.userAgent});
-        if(!r.ok){ loginMsg(r.error || 'Não foi possível entrar.', true); return; }
-        entrou(r);
+        if(r.hasPassword){ loginMsg('Digite sua senha.', true); document.getElementById('loginSenha').focus(); return; }
+        document.getElementById('loginSenha').value = '';
+        loginPasso('nova'); loginMsg('');
     });
 }
 /* 2b. código + senha nova (primeiro acesso ou esqueci) */
@@ -5822,6 +5823,11 @@ function loginCriarSenha(){
     });
 }
 async function loginEsqueci(){
+    if(loginPassoAtual === 'email'){
+        const em = document.getElementById('loginEmail').value.trim().toLowerCase();
+        if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ loginMsg('Digite seu e-mail e clique em "Esqueci minha senha".', true); return; }
+        loginEmailAtual = em;
+    }
     if(!loginEmailAtual){ loginPasso('email'); return; }
     loginMsg('Enviando código…');
     try{
@@ -5834,8 +5840,7 @@ async function loginEsqueci(){
 function loginVoltar(){ loginPasso('email'); loginMsg(''); }
 document.getElementById('loginForm').addEventListener('submit', e=>{
     e.preventDefault();
-    if(loginPassoAtual === 'email') loginContinuar();
-    else if(loginPassoAtual === 'senha') loginEntrar();
+    if(loginPassoAtual === 'email') loginEntrarUnico();
     else loginCriarSenha();
 });
 function mostrarUsuario(){
@@ -5870,7 +5875,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.4 · 07/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.5 · 08/10/2026</div>
 
 </body>
 </html>
