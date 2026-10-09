@@ -213,7 +213,7 @@ select{
 }
 
 .aquila-logo-wrap{
-    height:38px;
+    height:42px;
     margin-left:8px;
     padding-left:17px;
     display:flex;
@@ -1798,12 +1798,44 @@ canvas{
 <script>
 
 /* =========================================================
+   SEPARADOR DE MILHAR
+   O Chrome, em português, não põe o ponto em números de 4 dígitos
+   (mostra 2605 e só põe em 12.605). Regra da diretoria: sempre 2.605.
+   Corrige em todo o painel: textos, tabelas, rótulos e eixos dos gráficos.
+========================================================= */
+function poeMilhar(s){
+    return String(s).replace(/(^|[^\d.,])(\d)(\d{3})(?=$|[^\d.])/g, '$1$2.$3');
+}
+(function(){
+    const ptBR = loc => !loc || /^pt/i.test(Array.isArray(loc) ? loc[0] : String(loc));
+    const orig = Number.prototype.toLocaleString;
+    Number.prototype.toLocaleString = function(loc, opt){
+        const s = orig.call(this, loc, opt);
+        return (ptBR(loc) && !(opt && opt.useGrouping === false)) ? poeMilhar(s) : s;
+    };
+    const d = Object.getOwnPropertyDescriptor(Intl.NumberFormat.prototype, 'format');
+    if(d && d.get){
+        Object.defineProperty(Intl.NumberFormat.prototype, 'format', {configurable:true, get(){
+            const f = d.get.call(this), ro = this.resolvedOptions();
+            return (/^pt/i.test(ro.locale) && ro.useGrouping !== false && ro.useGrouping !== 'false') ? (v => poeMilhar(f(v))) : f;
+        }});
+    }
+})();
+/* Número para exibir: 2605 → "2.605"; 12.5 → "12,5"; vazio/— fica como está */
+function N(v){
+    if(v === null || v === undefined || v === '' || v === '—') return v;
+    const n = Number(v);
+    return isNaN(n) ? v : n.toLocaleString('pt-BR', {maximumFractionDigits:1});
+}
+
+/* =========================================================
    CHART DEFAULTS
 ========================================================= */
 
 Chart.defaults.font.family = '"Montserrat", Arial, sans-serif';
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#73858D';
+Chart.defaults.locale = 'pt-BR';
 /* Folga acima da maior coluna para o rótulo de valor não ser cortado */
 Chart.defaults.scales.linear.grace = '12%';
 
@@ -2276,7 +2308,7 @@ function updateExecutiveTarget(){
     /* Always show actual HE for selected month (Bug 1+2 fix) */
     const realized = DATA._totalHELastMn || 0;
     const heValEl  = document.getElementById('executiveHEValue');
-    if(heValEl) heValEl.textContent = realized + ' h';
+    if(heValEl) heValEl.textContent = N(realized) + ' h';
 
     document.getElementById('executiveHERule').textContent = DATA._metaRule || '';
 
@@ -2298,10 +2330,10 @@ function updateExecutiveTarget(){
     targetBlock.style.display = 'block';
     normalCaption.style.display = 'none';
 
-    document.getElementById('executiveHETarget').textContent = target + ' h';
+    document.getElementById('executiveHETarget').textContent = N(target) + ' h';
 
     const deviationEl = document.getElementById('executiveHEDeviation');
-    deviationEl.textContent = (deviation > 0 ? '+' : '') + deviation + ' h';
+    deviationEl.textContent = (deviation > 0 ? '+' : '') + N(deviation) + ' h';
     deviationEl.className = status.className;
 
     card.classList.add(status.className);
@@ -2518,7 +2550,7 @@ function renderExecutiveHEChart(){
                                         );
                                     }
 
-                                    return value+' h';
+                                    return N(value)+' h';
                                 }
                             }
                         }
@@ -2605,7 +2637,7 @@ function renderExecutiveInterChart(){
                                 ctx.textAlign = 'center';
 
                                 ctx.fillText(
-                                    DATA.executive.interjourney[index],
+                                    N(DATA.executive.interjourney[index]),
                                     point.x,
                                     point.y-10
                                 );
@@ -2737,11 +2769,11 @@ function renderHEManagementTable(){
                     targetStatus(item.hours,item.target);
 
                 targetText =
-                    item.target+' h';
+                    N(item.target)+' h';
 
                 deviationText =
                     (deviation>0?'+':'') +
-                    deviation +
+                    N(deviation) +
                     ' h';
 
                 attainmentText =
@@ -2799,7 +2831,7 @@ function heTargetText(hours,target){
     if(target === null || target === undefined) return {t:'Não definida', d:'—', cls:''};
     const st = targetStatus(hours,target);
     const dev = hours - target;
-    return {t: target+' h', d: (dev>0?'+':'')+dev+' h', cls: st ? st.className : ''};
+    return {t: N(target)+' h', d: (dev>0?'+':'')+N(dev)+' h', cls: st ? st.className : ''};
 }
 
 function selectHEManagement(name){
@@ -3080,7 +3112,7 @@ function renderHEPareto(){
                             border:{display:false},
 
                             ticks:{
-                                callback:value=>value+' h'
+                                callback:value=>N(value)+' h'
                             }
                         },
 
@@ -3133,8 +3165,8 @@ function renderInterManagementTable(){
 
             tr.innerHTML = `
                 <td class="strong">${item.name}</td>
-                <td class="numeric">${item.employees}</td>
-                <td class="numeric strong">${item.occurrences}</td>
+                <td class="numeric">${N(item.employees)}</td>
+                <td class="numeric strong">${N(item.occurrences)}</td>
                 <td class="numeric">${item.minimum}</td>
                 <td class="numeric">${formatPercent(share)}</td>
 
@@ -3177,7 +3209,7 @@ function selectInterManagement(name){
         name;
 
     document.getElementById('interSelectedOccurrences').textContent =
-        management.occurrences;
+        N(management.occurrences);
 
     document.getElementById('interSelectedShare').textContent =
         formatPercent(
@@ -3431,10 +3463,10 @@ function renderLunchManagementTable(){
 
             tr.innerHTML = `
                 <td class="strong">${item.name}</td>
-                <td class="numeric">${item.employees}</td>
-                <td class="numeric strong">${item.less}</td>
-                <td class="numeric strong">${item.more}</td>
-                <td class="numeric strong">${itemTotal}</td>
+                <td class="numeric">${N(item.employees)}</td>
+                <td class="numeric strong">${N(item.less)}</td>
+                <td class="numeric strong">${N(item.more)}</td>
+                <td class="numeric strong">${N(itemTotal)}</td>
                 <td class="numeric">${formatPercent(share)}</td>
 
                 <td>
@@ -3476,13 +3508,13 @@ function selectLunchManagement(name){
         name;
 
     document.getElementById('lunchSelectedTotal').textContent =
-        lunchTotal(management);
+        N(lunchTotal(management));
 
     document.getElementById('lunchSelectedLess').textContent =
-        management.less;
+        N(management.less);
 
     document.getElementById('lunchSelectedMore').textContent =
-        management.more;
+        N(management.more);
 
     document.getElementById('lunchSelectedSector').textContent =
         'Clique no gráfico';
@@ -4019,7 +4051,7 @@ function renderHEEmployees(){
             </td>
 
             <td class="numeric">
-                ${item.days}
+                ${N(item.days)}
             </td>
 
             <td class="numeric">
@@ -4126,11 +4158,11 @@ function renderInterEmployees(){
             }
 
             <td class="numeric strong">
-                ${item.occurrences}
+                ${N(item.occurrences)}
             </td>
 
             <td class="numeric">
-                ${item.days}
+                ${N(item.days)}
             </td>
 
             <td class="numeric">
@@ -4243,15 +4275,15 @@ function renderLunchEmployees(){
             }
 
             <td class="numeric">
-                ${item.less}
+                ${N(item.less)}
             </td>
 
             <td class="numeric">
-                ${item.more}
+                ${N(item.more)}
             </td>
 
             <td class="numeric strong">
-                ${total}
+                ${N(total)}
             </td>
 
             <td class="numeric">
@@ -4816,7 +4848,7 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '2.7';
+const APP_VERSION = '2.9';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
 const LC_KEY = 'aquila_dc_v' + APP_VERSION;
@@ -5598,22 +5630,22 @@ function updateExecutiveCards(){
     /* HE employees card (HE screen) */
     const heEmpEl = get('executiveHEEmployees');
     if(heEmpEl) heEmpEl.textContent =
-        DATA._heEmployees != null ? DATA._heEmployees : '—';
+        DATA._heEmployees != null ? N(DATA._heEmployees) : '—';
 
     /* HE screen "HE Realizadas" card */
     const heScreenEl = get('heScreenRealized');
     if(heScreenEl) heScreenEl.textContent =
-        (DATA._totalHELastMn != null ? DATA._totalHELastMn : '—') + ' h';
+        (DATA._totalHELastMn != null ? N(DATA._totalHELastMn) : '—') + ' h';
 
     /* HE Over2h — two cards: executive screen (execOver2h*) and HE screen (executiveHEOver2h*) */
     ['execOver2h', 'executiveHEOver2h'].forEach(prefix => {
         const val = get(prefix + 'Value');
         const sec = get(prefix + 'Secondary');
         if(val) val.textContent =
-            DATA._heOver2hCount != null ? DATA._heOver2hCount : '—';
+            DATA._heOver2hCount != null ? N(DATA._heOver2hCount) : '—';
         if(sec) sec.textContent =
             DATA._heOver2hOccurrences != null
-            ? DATA._heOver2hOccurrences + ' ocorrências'
+            ? N(DATA._heOver2hOccurrences) + ' ocorrências'
             : '— ocorrências';
     });
 
@@ -5621,20 +5653,20 @@ function updateExecutiveCards(){
     const interEmpEl = get('execInterEmployees');
     const interOccEl = get('execInterOccurrences');
     if(interEmpEl) interEmpEl.textContent =
-        DATA._interEmployees != null ? DATA._interEmployees : '—';
+        DATA._interEmployees != null ? N(DATA._interEmployees) : '—';
     if(interOccEl) interOccEl.textContent =
         DATA._interOccurrences != null
-        ? DATA._interOccurrences + ' ocorrências'
+        ? N(DATA._interOccurrences) + ' ocorrências'
         : '— ocorrências';
 
     /* Lunch executive card */
     const lunchEmpEl = get('execLunchEmployees');
     const lunchDetEl = get('execLunchDetail');
     if(lunchEmpEl) lunchEmpEl.textContent =
-        DATA._lunchEmployees != null ? DATA._lunchEmployees : '—';
+        DATA._lunchEmployees != null ? N(DATA._lunchEmployees) : '—';
     if(lunchDetEl) lunchDetEl.textContent =
         DATA._lunchLess != null
-        ? DATA._lunchLess + ' <1h · ' + (DATA._lunchMore || 0) + ' >1h05'
+        ? N(DATA._lunchLess) + ' <1h · ' + N(DATA._lunchMore || 0) + ' >1h05'
         : '— <1h · — >1h05';
 
     /* Top HE management card (HE screen) */
@@ -5688,19 +5720,19 @@ function updateExecutiveCards(){
 
     /* Tela Interjornada */
     const setTxt = (id,v) => { const el = get(id); if(el) el.textContent = v; };
-    setTxt('interCardOcc',  DATA._interOccurrences ?? '—');
-    setTxt('interCardEmp',  DATA._interEmployees ?? '—');
-    setTxt('interCardDays', DATA._interDays ?? '—');
+    setTxt('interCardOcc',  N(DATA._interOccurrences ?? '—'));
+    setTxt('interCardEmp',  N(DATA._interEmployees ?? '—'));
+    setTxt('interCardDays', N(DATA._interDays ?? '—'));
     setTxt('interCardMin',  DATA._interMin ?? '—');
 
     /* Tela Almoço */
     const less = DATA._lunchLess || 0, more = DATA._lunchMore || 0, tot = less + more;
     const pct = v => tot ? (v/tot*100).toFixed(1).replace('.',',') + '% do total' : '—';
-    setTxt('lunchCardTotal', tot);
-    setTxt('lunchCardEmp',   DATA._lunchEmployees ?? '—');
-    setTxt('lunchCardLess',  less);
+    setTxt('lunchCardTotal', N(tot));
+    setTxt('lunchCardEmp',   N(DATA._lunchEmployees ?? '—'));
+    setTxt('lunchCardLess',  N(less));
     setTxt('lunchCardLessPct', pct(less));
-    setTxt('lunchCardMore',  more);
+    setTxt('lunchCardMore',  N(more));
     setTxt('lunchCardMorePct', pct(more));
 }
 
@@ -5875,7 +5907,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.8 · 08/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.9 · 09/10/2026</div>
 
 </body>
 </html>
