@@ -213,7 +213,7 @@ select{
 }
 
 .aquila-logo-wrap{
-    height:42px;
+    height:38px;
     margin-left:8px;
     padding-left:17px;
     display:flex;
@@ -223,7 +223,7 @@ select{
 .aquila-logo{
     display:block;
     width:auto;
-    height:40px;
+    height:27px;
     object-fit:contain;
 }
 
@@ -971,102 +971,10 @@ canvas{
     border:1px solid rgba(255,213,128,.25);
 }
 
-
-/* =========================================================
-   LOGIN
-========================================================= */
-#loginOverlay{
-    position:fixed; inset:0; z-index:20000;
-    display:none; align-items:center; justify-content:center;
-    padding:16px;
-    background:linear-gradient(160deg,#003D58 0%,#012B3F 100%);
-    font-family:Montserrat,Arial,sans-serif;
-}
-#loginOverlay.open{ display:flex; }
-.login-card{
-    width:100%; max-width:380px;
-    background:#fff; border-radius:14px;
-    box-shadow:0 18px 50px rgba(0,0,0,.35);
-    padding:32px 28px 26px;
-    color:var(--text);
-}
-.login-kicker{ font-size:11px; font-weight:700; letter-spacing:.12em; color:var(--muted); text-transform:uppercase; }
-.login-card h1{ margin:6px 0 4px; font-size:22px; color:var(--petroleum); }
-.login-card p.login-sub{ margin:0 0 22px; font-size:13px; color:var(--text-2); line-height:1.45; }
-.login-card label{ display:block; font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:6px; }
-.login-card input{
-    width:100%; box-sizing:border-box;
-    border:1px solid var(--border); border-radius:8px;
-    padding:12px 14px; font-size:15px; font-family:inherit; color:var(--text);
-    outline:none;
-}
-.login-card input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(21,210,255,.2); }
-#loginCode{ letter-spacing:.4em; font-size:20px; text-align:center; font-variant-numeric:tabular-nums; }
-.login-btn{
-    width:100%; margin-top:16px; padding:12px; border:none; border-radius:8px;
-    background:var(--petroleum); color:#fff; font:700 14px Montserrat,Arial,sans-serif; cursor:pointer;
-}
-.login-btn:disabled{ opacity:.6; cursor:wait; }
-.login-links{ display:flex; justify-content:space-between; gap:12px; margin-top:14px; }
-.login-links button{
-    background:none; border:none; padding:0; cursor:pointer;
-    font:600 12px Montserrat,Arial,sans-serif; color:var(--petroleum); text-decoration:underline;
-}
-.login-hint{ margin-top:12px; font-size:12px; color:var(--text-2); text-align:center; }
-#loginMsg{ min-height:18px; margin-top:12px; font-size:12px; line-height:1.4; color:var(--text-2); }
-#loginMsg.erro{ color:var(--red-dark); }
-.login-foot{ margin-top:18px; font-size:11px; color:var(--muted-2); text-align:center; }
-
-.user-chip{ display:none; align-items:center; gap:8px; color:#fff; font-size:12px; }
-.user-chip.on{ display:flex; }
-.user-chip span{ opacity:.8; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.user-chip button{
-    background:transparent; color:#fff; border:1px solid rgba(255,255,255,.45);
-    border-radius:16px; padding:5px 12px; font:600 12px Montserrat,Arial,sans-serif; cursor:pointer;
-}
-.user-chip button:hover{ background:rgba(255,255,255,.12); }
-@media (max-width:900px){ .user-chip span{ display:none; } }
 </style>
 </head>
 
 <body>
-<div id="loginOverlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-    <form class="login-card" id="loginForm" autocomplete="on" novalidate>
-        <div class="login-kicker">Frigorífico Serradão</div>
-        <h1 id="loginTitle">Painel de Jornada</h1>
-        <p class="login-sub" id="loginSub">Acesso restrito. Entre com seu e-mail e senha.</p>
-
-        <div id="loginStepEmail">
-            <label for="loginEmail">E-mail</label>
-            <input id="loginEmail" type="email" inputmode="email" autocomplete="username" placeholder="nome@empresa.com.br">
-            <label for="loginSenha" style="margin-top:14px">Senha</label>
-            <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Sua senha">
-            <button class="login-btn" id="loginEnter" type="submit">Entrar</button>
-            <div class="login-hint">Primeiro acesso? Preencha só o e-mail e clique em Entrar.</div>
-            <div class="login-links">
-                <span></span>
-                <button type="button" onclick="loginEsqueci()">Esqueci minha senha</button>
-            </div>
-        </div>
-
-        <div id="loginStepNova" style="display:none">
-            <label for="loginCode">Código recebido por e-mail</label>
-            <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
-            <label for="loginNova" style="margin-top:14px">Crie sua senha (mínimo 6 caracteres)</label>
-            <input id="loginNova" type="password" autocomplete="new-password" placeholder="Nova senha">
-            <input id="loginNova2" type="password" autocomplete="new-password" placeholder="Repita a senha" style="margin-top:8px">
-            <button class="login-btn" id="loginCreate" type="submit">Criar senha e entrar</button>
-            <div class="login-links">
-                <button type="button" onclick="loginVoltar()">Voltar</button>
-                <button type="button" onclick="loginEsqueci()">Reenviar código</button>
-            </div>
-        </div>
-
-        <div id="loginMsg" aria-live="polite"></div>
-        <div class="login-foot">Os acessos ficam registrados.</div>
-    </form>
-</div>
-
 <div id="loadingOverlay">
     <div id="loadingSpinner"></div>
     <div id="loadingText">Carregando dados…</div>
@@ -1085,6 +993,7 @@ canvas{
         <button class="menu-item" data-screen="overtime" onclick="navigate('overtime')">Horas Extras</button>
         <button class="menu-item" data-screen="interjourney" onclick="navigate('interjourney')">Interjornada</button>
         <button class="menu-item" data-screen="lunch" onclick="navigate('lunch')">Horário de Almoço</button>
+        <button class="menu-item" data-screen="custos-he" onclick="navigate('custos-he');heInitScreen()">Custos HE</button>
     </nav>
 
     <div class="topbar-spacer"></div>
@@ -1112,13 +1021,8 @@ canvas{
             </select>
         </div>
 
-        <div class="user-chip" id="userChip">
-            <span id="userEmail"></span>
-            <button type="button" onclick="sairDoPainel()">Sair</button>
-        </div>
-
         <div class="aquila-logo-wrap">
-            <img class="aquila-logo" src="data:image/png;base64,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" alt="Áquila">
+            <img class="aquila-logo" src="Diretoria/logo-aquila.png" alt="Áquila" onerror="this.parentElement.style.display='none'">
         </div>
 
     </div>
@@ -1188,7 +1092,7 @@ canvas{
             <div class="card-title">Horário de Almoço</div>
             <div id="execLunchEmployees" class="card-value">—</div>
             <div class="card-caption">colaboradores envolvidos</div>
-            <div id="execLunchDetail" class="card-secondary">— &lt;1h · — &gt;1h05</div>
+            <div id="execLunchDetail" class="card-secondary">— &lt;1h · — &gt;1h</div>
         </article>
 
     </section>
@@ -1233,7 +1137,7 @@ canvas{
                 <div class="panel-kicker">HORÁRIO DE ALMOÇO</div>
                 <h2 class="panel-title">Evolução das ocorrências</h2>
                 <p class="panel-subtitle">
-                    Comparação mensal entre intervalos inferiores a 1 hora e superiores a 1h05
+                    Comparação mensal entre intervalos inferiores e superiores a 1 hora
                 </p>
             </div>
         </header>
@@ -1631,7 +1535,7 @@ canvas{
         </article>
 
         <article class="card yellow">
-            <div class="card-title">Intervalo Superior a 1h05</div>
+            <div class="card-title">Intervalo Superior a 1h</div>
             <div id="lunchCardMore" class="card-value">—</div>
             <div class="card-caption">ocorrências registradas</div>
             <div id="lunchCardMorePct" class="card-secondary">—</div>
@@ -1644,7 +1548,7 @@ canvas{
                 <div class="panel-kicker">NÍVEL 1 · GERÊNCIA</div>
                 <h2 class="panel-title">Ocorrências por Gerência</h2>
                 <p class="panel-subtitle">
-                    Distribuição dos intervalos inferiores a 1 hora e superiores a 1h05
+                    Distribuição dos intervalos inferiores e superiores a 1 hora
                 </p>
             </div>
         </header>
@@ -1656,7 +1560,7 @@ canvas{
                         <th>Gerência</th>
                         <th class="numeric">Colaboradores</th>
                         <th class="numeric">&lt;1h</th>
-                        <th class="numeric">&gt;1h05</th>
+                        <th class="numeric">&gt;1h</th>
                         <th class="numeric">Total</th>
                         <th class="numeric">% do total</th>
                         <th>Predominância</th>
@@ -1681,7 +1585,7 @@ canvas{
             <div class="toggle">
                 <button id="lunchTotalButton" class="active" onclick="setLunchParetoMode('total')">TOTAL</button>
                 <button id="lunchLessButton" onclick="setLunchParetoMode('less')">&lt;1H</button>
-                <button id="lunchMoreButton" onclick="setLunchParetoMode('more')">&gt;1H05</button>
+                <button id="lunchMoreButton" onclick="setLunchParetoMode('more')">&gt;1H</button>
             </div>
         </header>
 
@@ -1707,7 +1611,7 @@ canvas{
                 </div>
 
                 <div class="context-stat">
-                    <span>Intervalo &gt;1h05</span>
+                    <span>Intervalo &gt;1h</span>
                     <strong id="lunchSelectedMore">—</strong>
                 </div>
 
@@ -1748,7 +1652,7 @@ canvas{
                         <th>Colaborador</th>
                         <th id="lunchSectorHeader" style="display:none">Setor</th>
                         <th class="numeric">&lt;1h</th>
-                        <th class="numeric">&gt;1h05</th>
+                        <th class="numeric">&gt;1h</th>
                         <th class="numeric sortable-header" onclick="toggleEmployeeSort('lunch')">
                             <span class="sort-label">
                                 Total
@@ -1764,6 +1668,78 @@ canvas{
             </table>
         </div>
     </section>
+
+</section>
+
+<!-- ======================================================
+     CUSTOS HE
+====================================================== -->
+<section id="screen-custos-he" class="screen">
+
+  <section class="page-heading">
+    <div>
+      <span class="kicker">DIRETORIA · HORA EXTRA</span>
+      <h1>Custos de Hora Extra</h1>
+      <p class="page-description">Custo mensal de Hora Extra — Indústria e Escritório. Fonte: DRE Frigobet · aba HE_CUSTOS.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
+      <div class="card petroleum">
+        <div class="card-value" id="he-idx-total">—</div>
+        <div class="card-title">Total YTD</div>
+        <div class="card-caption" id="he-idx-meses">—</div>
+      </div>
+      <div class="card petroleum">
+        <div class="card-value" id="he-idx-media">—</div>
+        <div class="card-title">Média Mensal</div>
+        <div class="card-caption">por mês</div>
+      </div>
+      <div class="card petroleum">
+        <div class="card-value" id="he-idx-ultimo">—</div>
+        <div class="card-title">Último Mês</div>
+        <div class="card-caption" id="he-idx-ultimo-label">—</div>
+      </div>
+      <div class="card petroleum">
+        <div class="card-value" id="he-idx-pct-ind">—</div>
+        <div class="card-title">% HE Indústria</div>
+        <div class="card-caption">sobre total HE</div>
+      </div>
+    </div>
+    <div style="position:relative;height:280px"><canvas id="chart-he-idx"></canvas></div>
+  </section>
+
+  <section class="panel">
+    <header class="panel-header">
+      <div>
+        <div class="panel-kicker">DETALHAMENTO</div>
+        <h2 class="panel-title">Hora Extra por mês</h2>
+      </div>
+    </header>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Mês/Ano</th>
+          <th class="numeric">HE Indústria</th>
+          <th class="numeric">HE Escritório</th>
+          <th class="numeric">Total HE</th>
+          <th class="numeric">% YTD</th>
+        </tr></thead>
+        <tbody id="tbody-he-idx"></tbody>
+        <tfoot><tr>
+          <td><strong>TOTAL</strong></td>
+          <td class="numeric" id="he-idx-tot-ind">—</td>
+          <td class="numeric" id="he-idx-tot-esc">—</td>
+          <td class="numeric" id="he-idx-tot-all">—</td>
+          <td class="numeric">100%</td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <p id="he-idx-alert" style="display:none;padding:12px 16px;font-size:12px;color:var(--muted)">
+      ℹ Use o <strong>Importador HE Custos</strong> para salvar os dados na aba <strong>HE_CUSTOS</strong> do Sheets.
+    </p>
+  </section>
 
 </section>
 
@@ -1798,46 +1774,12 @@ canvas{
 <script>
 
 /* =========================================================
-   SEPARADOR DE MILHAR
-   O Chrome, em português, não põe o ponto em números de 4 dígitos
-   (mostra 2605 e só põe em 12.605). Regra da diretoria: sempre 2.605.
-   Corrige em todo o painel: textos, tabelas, rótulos e eixos dos gráficos.
-========================================================= */
-function poeMilhar(s){
-    return String(s).replace(/(^|[^\d.,])(\d)(\d{3})(?=$|[^\d.])/g, '$1$2.$3');
-}
-(function(){
-    const ptBR = loc => !loc || /^pt/i.test(Array.isArray(loc) ? loc[0] : String(loc));
-    const orig = Number.prototype.toLocaleString;
-    Number.prototype.toLocaleString = function(loc, opt){
-        const s = orig.call(this, loc, opt);
-        return (ptBR(loc) && !(opt && opt.useGrouping === false)) ? poeMilhar(s) : s;
-    };
-    const d = Object.getOwnPropertyDescriptor(Intl.NumberFormat.prototype, 'format');
-    if(d && d.get){
-        Object.defineProperty(Intl.NumberFormat.prototype, 'format', {configurable:true, get(){
-            const f = d.get.call(this), ro = this.resolvedOptions();
-            return (/^pt/i.test(ro.locale) && ro.useGrouping !== false && ro.useGrouping !== 'false') ? (v => poeMilhar(f(v))) : f;
-        }});
-    }
-})();
-/* Número para exibir: 2605 → "2.605"; 12.5 → "12,5"; vazio/— fica como está */
-function N(v){
-    if(v === null || v === undefined || v === '' || v === '—') return v;
-    const n = Number(v);
-    return isNaN(n) ? v : n.toLocaleString('pt-BR', {maximumFractionDigits:1});
-}
-
-/* =========================================================
    CHART DEFAULTS
 ========================================================= */
 
 Chart.defaults.font.family = '"Montserrat", Arial, sans-serif';
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#73858D';
-Chart.defaults.locale = 'pt-BR';
-/* Folga acima da maior coluna para o rótulo de valor não ser cortado */
-Chart.defaults.scales.linear.grace = '12%';
 
 const COLORS = {
     petroleum:'#003D58',
@@ -1941,9 +1883,7 @@ const valueLabelPlugin = {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
 
-                let label = typeof value === 'number'
-                    ? value.toLocaleString('pt-BR',{maximumFractionDigits:1})
-                    : value;
+                let label = value;
 
                 if(dataset.money){
                     label =
@@ -1954,14 +1894,11 @@ const valueLabelPlugin = {
                         );
                 }
 
-                /* Se ainda assim não couber acima da coluna, escreve dentro dela */
-                if(element.y - 6 - 12 < 0 && element.base - element.y > 18){
-                    ctx.fillStyle = '#fff';
-                    ctx.textBaseline = 'top';
-                    ctx.fillText(label, element.x, element.y + 4);
-                }else{
-                    ctx.fillText(label, element.x, element.y - 6);
-                }
+                ctx.fillText(
+                    label,
+                    element.x,
+                    element.y-6
+                );
 
                 ctx.restore();
             });
@@ -2308,16 +2245,14 @@ function updateExecutiveTarget(){
     /* Always show actual HE for selected month (Bug 1+2 fix) */
     const realized = DATA._totalHELastMn || 0;
     const heValEl  = document.getElementById('executiveHEValue');
-    if(heValEl) heValEl.textContent = N(realized) + ' h';
+    if(heValEl) heValEl.textContent = realized + ' h';
 
     document.getElementById('executiveHERule').textContent = DATA._metaRule || '';
 
     /* Meta proporcional aos dias do período selecionado */
     const target = DATA._periodTarget;
 
-    /* Meta 0 é meta de verdade (setores "Zerar"): qualquer HE fica acima dela,
-       igual à tela de Horas Extras. Só esconde quando não há meta cadastrada. */
-    if(target === null || target === undefined){
+    if(target === null || target === undefined || !target){
         targetBlock.style.display = 'none';
         normalCaption.style.display = 'block';
         card.classList.add('petroleum');
@@ -2330,10 +2265,10 @@ function updateExecutiveTarget(){
     targetBlock.style.display = 'block';
     normalCaption.style.display = 'none';
 
-    document.getElementById('executiveHETarget').textContent = N(target) + ' h';
+    document.getElementById('executiveHETarget').textContent = target + ' h';
 
     const deviationEl = document.getElementById('executiveHEDeviation');
-    deviationEl.textContent = (deviation > 0 ? '+' : '') + N(deviation) + ' h';
+    deviationEl.textContent = (deviation > 0 ? '+' : '') + deviation + ' h';
     deviationEl.className = status.className;
 
     card.classList.add(status.className);
@@ -2550,7 +2485,7 @@ function renderExecutiveHEChart(){
                                         );
                                     }
 
-                                    return N(value)+' h';
+                                    return value+' h';
                                 }
                             }
                         }
@@ -2637,7 +2572,7 @@ function renderExecutiveInterChart(){
                                 ctx.textAlign = 'center';
 
                                 ctx.fillText(
-                                    N(DATA.executive.interjourney[index]),
+                                    DATA.executive.interjourney[index],
                                     point.x,
                                     point.y-10
                                 );
@@ -2680,7 +2615,7 @@ function renderExecutiveLunchChart(){
                         },
 
                         {
-                            label:'>1h05',
+                            label:'>1h',
                             data:DATA.executive.lunchMore,
                             backgroundColor:COLORS.amber,
                             borderRadius:5,
@@ -2769,11 +2704,11 @@ function renderHEManagementTable(){
                     targetStatus(item.hours,item.target);
 
                 targetText =
-                    N(item.target)+' h';
+                    item.target+' h';
 
                 deviationText =
                     (deviation>0?'+':'') +
-                    N(deviation) +
+                    deviation +
                     ' h';
 
                 attainmentText =
@@ -2791,7 +2726,7 @@ function renderHEManagementTable(){
             tr.innerHTML = `
                 <td class="strong">${item.name}</td>
                 <td class="numeric">${targetText}</td>
-                <td class="numeric strong">${Number(item.hours).toLocaleString('pt-BR')} h</td>
+                <td class="numeric strong">${item.hours} h</td>
                 <td class="numeric">${deviationText}</td>
                 <td class="numeric">${attainmentText}</td>
                 <td>${statusHTML}</td>
@@ -2831,7 +2766,7 @@ function heTargetText(hours,target){
     if(target === null || target === undefined) return {t:'Não definida', d:'—', cls:''};
     const st = targetStatus(hours,target);
     const dev = hours - target;
-    return {t: N(target)+' h', d: (dev>0?'+':'')+N(dev)+' h', cls: st ? st.className : ''};
+    return {t: target+' h', d: (dev>0?'+':'')+dev+' h', cls: st ? st.className : ''};
 }
 
 function selectHEManagement(name){
@@ -2853,7 +2788,7 @@ function selectHEManagement(name){
         name;
 
     document.getElementById('heSelectedHours').textContent =
-        Number(management.hours).toLocaleString('pt-BR')+' h';
+        management.hours+' h';
 
     document.getElementById('heSelectedShare').textContent =
         formatPercent(management.share);
@@ -3112,7 +3047,7 @@ function renderHEPareto(){
                             border:{display:false},
 
                             ticks:{
-                                callback:value=>N(value)+' h'
+                                callback:value=>value+' h'
                             }
                         },
 
@@ -3165,8 +3100,8 @@ function renderInterManagementTable(){
 
             tr.innerHTML = `
                 <td class="strong">${item.name}</td>
-                <td class="numeric">${N(item.employees)}</td>
-                <td class="numeric strong">${N(item.occurrences)}</td>
+                <td class="numeric">${item.employees}</td>
+                <td class="numeric strong">${item.occurrences}</td>
                 <td class="numeric">${item.minimum}</td>
                 <td class="numeric">${formatPercent(share)}</td>
 
@@ -3209,7 +3144,7 @@ function selectInterManagement(name){
         name;
 
     document.getElementById('interSelectedOccurrences').textContent =
-        N(management.occurrences);
+        management.occurrences;
 
     document.getElementById('interSelectedShare').textContent =
         formatPercent(
@@ -3463,15 +3398,15 @@ function renderLunchManagementTable(){
 
             tr.innerHTML = `
                 <td class="strong">${item.name}</td>
-                <td class="numeric">${N(item.employees)}</td>
-                <td class="numeric strong">${N(item.less)}</td>
-                <td class="numeric strong">${N(item.more)}</td>
-                <td class="numeric strong">${N(itemTotal)}</td>
+                <td class="numeric">${item.employees}</td>
+                <td class="numeric strong">${item.less}</td>
+                <td class="numeric strong">${item.more}</td>
+                <td class="numeric strong">${itemTotal}</td>
                 <td class="numeric">${formatPercent(share)}</td>
 
                 <td>
                     <span class="status ${lessPredominates?'red':'yellow'}">
-                        ${lessPredominates?'<1h':'>1h05'}
+                        ${lessPredominates?'<1h':'>1h'}
                     </span>
                 </td>
 
@@ -3508,13 +3443,13 @@ function selectLunchManagement(name){
         name;
 
     document.getElementById('lunchSelectedTotal').textContent =
-        N(lunchTotal(management));
+        lunchTotal(management);
 
     document.getElementById('lunchSelectedLess').textContent =
-        N(management.less);
+        management.less;
 
     document.getElementById('lunchSelectedMore').textContent =
-        N(management.more);
+        management.more;
 
     document.getElementById('lunchSelectedSector').textContent =
         'Clique no gráfico';
@@ -3615,7 +3550,7 @@ function renderLunchPareto(){
         lunchParetoMode === 'less'
         ? 'Concentração dos intervalos inferiores a 1 hora dentro da gerência selecionada'
         : lunchParetoMode === 'more'
-            ? 'Concentração dos intervalos superiores a 1h05 dentro da gerência selecionada'
+            ? 'Concentração dos intervalos superiores a 1 hora dentro da gerência selecionada'
             : 'Concentração do total de ocorrências dentro da gerência selecionada';
 
     if(lunchParetoChart){
@@ -4051,7 +3986,7 @@ function renderHEEmployees(){
             </td>
 
             <td class="numeric">
-                ${N(item.days)}
+                ${item.days}
             </td>
 
             <td class="numeric">
@@ -4065,7 +4000,7 @@ function renderHEEmployees(){
             <td>
                 <button
                     class="action"
-                    onclick="openHEDrawer(${jsArg(item.cracha)},${jsArg(item.sector)})"
+                    onclick="openHEDrawer(${jsArg(item.name)},${jsArg(item.sector)})"
                 >
                     Ver histórico
                 </button>
@@ -4158,11 +4093,11 @@ function renderInterEmployees(){
             }
 
             <td class="numeric strong">
-                ${N(item.occurrences)}
+                ${item.occurrences}
             </td>
 
             <td class="numeric">
-                ${N(item.days)}
+                ${item.days}
             </td>
 
             <td class="numeric">
@@ -4180,7 +4115,7 @@ function renderInterEmployees(){
             <td>
                 <button
                     class="action"
-                    onclick="openInterDrawer(${jsArg(item.cracha)},${jsArg(item.sector)})"
+                    onclick="openInterDrawer(${jsArg(item.name)},${jsArg(item.sector)})"
                 >
                     Ver histórico
                 </button>
@@ -4275,15 +4210,15 @@ function renderLunchEmployees(){
             }
 
             <td class="numeric">
-                ${N(item.less)}
+                ${item.less}
             </td>
 
             <td class="numeric">
-                ${N(item.more)}
+                ${item.more}
             </td>
 
             <td class="numeric strong">
-                ${N(total)}
+                ${total}
             </td>
 
             <td class="numeric">
@@ -4297,7 +4232,7 @@ function renderLunchEmployees(){
             <td>
                 <button
                     class="action"
-                    onclick="openLunchDrawer(${jsArg(item.cracha)},${jsArg(item.sector)})"
+                    onclick="openLunchDrawer(${jsArg(item.name)},${jsArg(item.sector)})"
                 >
                     Ver histórico
                 </button>
@@ -4312,13 +4247,12 @@ function renderLunchEmployees(){
    DRAWER · HORAS EXTRAS
 ========================================================= */
 
-function openHEDrawer(cracha,sector){
+function openHEDrawer(name,sector){
 
-    /* busca pelo crachá: dois colaboradores podem ter o mesmo nome */
     const employee =
         (
             DATA.overtime.employees[sector] || []
-        ).find(item=>String(item.cracha) === String(cracha));
+        ).find(item=>item.name === name);
 
     if(!employee){
         return;
@@ -4374,13 +4308,12 @@ function openHEDrawer(cracha,sector){
    DRAWER · INTERJORNADA
 ========================================================= */
 
-function openInterDrawer(cracha,sector){
+function openInterDrawer(name,sector){
 
-    /* busca pelo crachá: dois colaboradores podem ter o mesmo nome */
     const employee =
         (
             DATA.interjourney.employees[sector] || []
-        ).find(item=>String(item.cracha) === String(cracha));
+        ).find(item=>item.name === name);
 
     if(!employee){
         return;
@@ -4440,13 +4373,12 @@ function openInterDrawer(cracha,sector){
    DRAWER · ALMOÇO
 ========================================================= */
 
-function openLunchDrawer(cracha,sector){
+function openLunchDrawer(name,sector){
 
-    /* busca pelo crachá: dois colaboradores podem ter o mesmo nome */
     const employee =
         (
             DATA.lunch.employees[sector] || []
-        ).find(item=>String(item.cracha) === String(cracha));
+        ).find(item=>item.name === name);
 
     if(!employee){
         return;
@@ -4470,7 +4402,7 @@ function openLunchDrawer(cracha,sector){
         </div>
 
         <div class="drawer-stat">
-            <span>Intervalos &gt;1h05</span>
+            <span>Intervalos &gt;1h</span>
             <strong>${employee.more}</strong>
         </div>
     `;
@@ -4492,7 +4424,7 @@ function openLunchDrawer(cracha,sector){
                 const label =
                     item.type === 'less'
                     ? '<1h'
-                    : '>1h05';
+                    : '>1h';
 
                 const className =
                     item.type === 'less'
@@ -4597,7 +4529,10 @@ function handleCompanyChange(){
         processRawData(BASES_RESULT, METAS_RESULT || {cols:[],rows:[]});
         initializeDashboard();
     } else {
-        waitForFreshData();
+        updateExecutiveTarget();
+        resetDrillDowns();
+        renderHEManagementTable();
+        if(currentScreen === 'executive') renderExecutiveHEChart();
     }
 }
 
@@ -4670,11 +4605,7 @@ function getPeriod(){
         startStr:st, endStr:en
     };
 }
-function periodKey(){
-    const p  = getPeriod();
-    const co = (document.getElementById('companyFilter')||{}).value || 'Consolidado';
-    return p.startStr+'|'+p.endStr+'|'+co;
-}
+function periodKey(){ const p = getPeriod(); return p.startStr+'|'+p.endStr; }
 function initPeriodDefaults(){
     const today = todayISO();
     document.getElementById('dateStart').value = today.slice(0,8)+'01';
@@ -4688,9 +4619,9 @@ function handlePeriodChange(){
     if(BASES_RESULT){
         processRawData(BASES_RESULT, METAS_RESULT || {cols:[],rows:[]});
         initializeDashboard();
-    } else {
-        waitForFreshData();
     }
+    /* Se os dados ainda estão chegando, eles serão processados
+       automaticamente com o período escolhido. */
 }
 
 ['dateStart','dateEnd'].forEach(id=>{
@@ -4704,7 +4635,6 @@ function handlePeriodChange(){
 
 function initializeDashboard(){
 
-    if(typeof closeDrawer === 'function') closeDrawer();
     updateExecutiveTarget();
     updateExecutiveCards();
     renderExecutiveCharts();
@@ -4725,19 +4655,13 @@ function initializeDashboard(){
 const APPS_SCRIPT_URL =
     'https://script.google.com/macros/s/AKfycbyVOhMYr_NwSBXuggSLtWLC5E3R_5_6Vb1DiFLNXEEWlZ8jIyZDbt3kIzVdCzBxA3PX/exec';
 
-/* LOGIN — link do Apps Script "Porteiro" (termina em /exec).
-   Vazio = painel aberto, lendo a planilha pública como antes. */
-const PORTEIRO_URL = 'https://script.google.com/macros/s/AKfycbyqFM4eUkZwhK25hXKHRdTsCvBK9wVnjjD-Cd8JIQeZfJNScAKZAKUareVjzxRPH0zt/exec';
-const SESSAO_KEY   = 'pj_sessao';
-
 /* ID da planilha — extraído da URL do Google Sheets */
 const SHEET_ID = '1CBhv0R723L8pyni9KfMYWfSxV-Oa93XfzDWK-94ISU4';
 
 /* Colunas necessárias para "Bases pontos" (evita transferir 45 colunas desnecessárias).
    Ordem retornada → nova posição usada em processRawData:
-   C=0 D=1 F=2 H=3 I=4 AB=5 AD=6 AF=7 AI=8 G=9 AL=10 AN=11 AP=12 AQ=13 AS=14 AH=15 AT=16
-   J=17 K=18 L=19 (Saída 2, Entrada 3, Saída 3 — usadas para contar as batidas do dia) */
-const BASES_SELECT = 'SELECT C,D,F,H,I,AB,AD,AF,AI,G,AL,AN,AP,AQ,AS,AH,AT,J,K,L WHERE C IS NOT NULL';
+   C=0 D=1 F=2 H=3 I=4 AB=5 AD=6 AF=7 AI=8 G=9 AL=10 AN=11 AP=12 AQ=13 AS=14 AH=15 AT=16 */
+const BASES_SELECT = 'SELECT C,D,F,H,I,AB,AD,AF,AI,G,AL,AN,AP,AQ,AS,AH,AT WHERE C IS NOT NULL';
 
 /* ── Helpers ── */
 
@@ -4758,21 +4682,20 @@ function parseTime(val){
     return h + m/60;
 }
 
-/* Formatação em minutos inteiros — evita "10h 60min" por arredondamento */
 function formatIntervalStr(h){
-    const t  = Math.round(h*60);
-    const hh = Math.floor(t/60);
-    const mm = t % 60;
+    const hh = Math.floor(h);
+    const mm = Math.round((h-hh)*60);
     return hh+'h '+String(mm).padStart(2,'0')+'min';
 }
 
 function formatDurationStr(h){
-    const t = Math.round(h*60);
-    if(t <= 0) return '0 min';
-    if(t >= 60){
-        return Math.floor(t/60)+'h '+String(t%60).padStart(2,'0')+'min';
+    if(h <= 0) return '0 min';
+    if(h >= 1){
+        const hh = Math.floor(h);
+        const mm = Math.round((h-hh)*60);
+        return hh+'h '+String(mm).padStart(2,'0')+'min';
     }
-    return t+' min';
+    return Math.round(h*60)+' min';
 }
 
 function formatDateStr(dateStr){
@@ -4845,20 +4768,8 @@ function showError(msg){
    ══════════════════════════════════════════════════════ */
 
 /* Cache em localStorage (TTL 6h) para evitar re-leitura */
-/* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
-   suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
-   exibindo o resultado antigo por até 6h. */
-const APP_VERSION = '2.9';
-/* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
-const LUNCH_MAX_MIN = 65;
-const LC_KEY = 'aquila_dc_v' + APP_VERSION;
+const LC_KEY = 'aquila_dc_v10';
 const LC_TTL = 6 * 60 * 60 * 1000;
-/* limpa caches de versões anteriores */
-try{
-    Object.keys(localStorage).forEach(k=>{
-        if(k.startsWith('aquila_dc_') && k !== LC_KEY) localStorage.removeItem(k);
-    });
-}catch(e){}
 
 function lcSave(data, months){
     try{
@@ -4896,95 +4807,7 @@ function lcAgeMin(){
    resultado pequeno trafega. 5-10× mais rápido.
    ══════════════════════════════════════════════════════ */
 
-/* Converte a tabela do Google (gviz) no formato {cols, rows} usado pelo painel */
-function parseGvizTable(table){
-    table = table || {cols:[], rows:[]};
-    const cols = (table.cols||[]).map(c=>({label:c.label, type:c.type}));
-
-    const rows = (table.rows||[]).map(r=>
-        (Array.isArray(r) ? r.map(v=>v==null?null:{v}) : (r.c||[])).map((c,i)=>{
-            if(!c || c.v===null || c.v===undefined) return null;
-            const type = cols[i] ? cols[i].type : '';
-            /* Date → "M/D/YYYY" (igual ao formato antigo) */
-            if(type === 'date'){
-                if(typeof c.v === 'string'){
-                    const dm = c.v.match(/Date\((\d+),(\d+),(\d+)\)/);
-                    if(dm) return (parseInt(dm[2])+1)+'/'+dm[3]+'/'+dm[1];
-                }
-                return c.f || String(c.v);
-            }
-            /* timeofday → "H:MM" string (parseTime aceita arrays também) */
-            if(type === 'timeofday'){
-                if(Array.isArray(c.v))
-                    return c.v[0]+':'+String(c.v[1]||0).padStart(2,'0');
-                return c.f || String(c.v);
-            }
-            /* datetime → extrai H:MM da parte de hora do construtor Date(y,m,d,h,min,s)
-               Usado por AB (HE Total), H, I, AF, AI, AK — todos colunas de tempo/duração.
-               Retorna string "H:MM" no mesmo formato que parseTime() já sabe ler. */
-            if(type === 'datetime'){
-                if(typeof c.v === 'string'){
-                    const dm = c.v.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
-                    if(dm) return dm[1]+':'+String(dm[2]).padStart(2,'0');
-                }
-                /* Fallback: usa o valor formatado (c.f) */
-                return c.f || null;
-            }
-            return c.v ?? null;
-        })
-    );
-    return {cols, rows};
-}
-
-/* Lê uma aba: com o porteiro configurado, os dados só vêm com login;
-   sem ele, lê a planilha pública direto (modo antigo). */
 function gviz(sheet, query){
-    if(PORTEIRO_URL) return gvizPorteiro(sheet, query);
-    return gvizPublico(sheet, query);
-}
-
-async function gvizPorteiro(sheet, query){
-    const sessao = lerSessao();
-    if(!sessao){ exigirLogin(); throw new Error('auth'); }
-    const resp = await chamarPorteiro({action:'data', token:sessao.token, sheet, query});
-    if(!resp.ok){
-        if(resp.error === 'auth'){ exigirLogin('Sua sessão terminou. Entre novamente.', true); throw new Error('auth'); }
-        throw new Error(resp.error || ('Falha ao ler "'+sheet+'"'));
-    }
-    if(resp.gz){
-        setLoadingText && setLoadingText('Descompactando dados…');
-        return parseGvizTable(await descompactar(resp.gz));
-    }
-    return parseGvizTable(resp.table);
-}
-
-async function gvizPorteiroTudo(){
-    const sessao = lerSessao();
-    if(!sessao){ exigirLogin(); throw new Error('auth'); }
-    setLoadingText && setLoadingText('Buscando dados no servidor…');
-    const resp = await chamarPorteiro({action:'dataAll', token:sessao.token, requests:[
-        {sheet:'Bases pontos', query:BASES_SELECT}, {sheet:'Metas', query:'SELECT *'}]});
-    if(!resp.ok){
-        if(resp.error === 'auth'){ exigirLogin('Sua sessão terminou. Entre novamente.', true); throw new Error('auth'); }
-        throw new Error(resp.error || 'Falha ao buscar os dados');
-    }
-    setLoadingText && setLoadingText('Montando o painel…');
-    const bases = parseGvizTable(await descompactar(resp.gz['Bases pontos']));
-    let metas = {cols:[], rows:[]};
-    try{ metas = parseGvizTable(await descompactar(resp.gz['Metas'])); METAS_ERROR = null; }
-    catch(e){ METAS_ERROR = e.message; }
-    return {bases, metas};
-}
-
-/* resposta do porteiro: JSON compactado com gzip e codificado em base64 */
-async function descompactar(b64){
-    const bin = atob(b64), bytes = new Uint8Array(bin.length);
-    for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const txt = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
-    return JSON.parse(txt);
-}
-
-function gvizPublico(sheet, query){
     return new Promise((resolve, reject) => {
         const cb = 'gv_' + Date.now() + '_' + Math.random().toString(36).slice(2);
         const s  = document.createElement('script');
@@ -5001,7 +4824,43 @@ function gvizPublico(sheet, query){
                     (resp.errors||[]).map(e=>e.detailed_message||e.message).join('; ')
                 ));
 
-            resolve(parseGvizTable(resp.table));
+            const table = resp.table || {cols:[], rows:[]};
+            const cols = (table.cols||[]).map(c=>({label:c.label, type:c.type}));
+
+            const rows = (table.rows||[]).map(r=>
+                (r.c||[]).map((c,i)=>{
+                    if(!c || c.v===null || c.v===undefined) return null;
+                    const type = cols[i] ? cols[i].type : '';
+                    /* Date → "M/D/YYYY" (igual ao formato antigo) */
+                    if(type === 'date'){
+                        if(typeof c.v === 'string'){
+                            const dm = c.v.match(/Date\((\d+),(\d+),(\d+)\)/);
+                            if(dm) return (parseInt(dm[2])+1)+'/'+dm[3]+'/'+dm[1];
+                        }
+                        return c.f || String(c.v);
+                    }
+                    /* timeofday → "H:MM" string (parseTime aceita arrays também) */
+                    if(type === 'timeofday'){
+                        if(Array.isArray(c.v))
+                            return c.v[0]+':'+String(c.v[1]||0).padStart(2,'0');
+                        return c.f || String(c.v);
+                    }
+                    /* datetime → extrai H:MM da parte de hora do construtor Date(y,m,d,h,min,s)
+                       Usado por AB (HE Total), H, I, AF, AI, AK — todos colunas de tempo/duração.
+                       Retorna string "H:MM" no mesmo formato que parseTime() já sabe ler. */
+                    if(type === 'datetime'){
+                        if(typeof c.v === 'string'){
+                            const dm = c.v.match(/Date\(\d+,\d+,\d+,(\d+),(\d+)/);
+                            if(dm) return dm[1]+':'+String(dm[2]).padStart(2,'0');
+                        }
+                        /* Fallback: usa o valor formatado (c.f) */
+                        return c.f || null;
+                    }
+                    return c.v ?? null;
+                })
+            );
+
+            resolve({cols, rows});
         };
 
         s.onerror = ()=>{ cleanup(); reject(new Error('Falha ao carregar "'+sheet+'"')); };
@@ -5067,32 +4926,16 @@ async function loadAndProcess(forceRefresh){
     await _fetchAndProcess();
 }
 
-/* Filtro trocado enquanto a tela ainda mostra o cache (dados brutos não chegaram):
-   cobre a tela com "Recalculando…" até os dados chegarem, em vez de deixar os
-   números da seleção anterior sob o filtro novo. */
-let PENDING_FILTER = false, FETCH_IN_FLIGHT = false;
-function waitForFreshData(){
-    PENDING_FILTER = true;
-    setLoadingText('Recalculando com o novo filtro…');
-    showLoading(true);
-    if(!FETCH_IN_FLIGHT) _refreshInBackground();
-}
-
 async function _refreshInBackground(){
     try{
         await _fetchAndProcess(true);
         console.log('[Dashboard] cache atualizado em segundo plano');
     }catch(e){
         console.warn('[Dashboard] atualização em segundo plano falhou:', e.message);
-        if(PENDING_FILTER){
-            PENDING_FILTER = false;
-            if(e.message !== 'auth') showError('Não foi possível recalcular com o novo filtro: ' + e.message);
-        }
     }
 }
 
 async function _fetchAndProcess(background){
-    FETCH_IN_FLIGHT = true;
     if(!background){
         setLoadingText('Conectando ao Google Sheets…');
         showLoading(true);
@@ -5104,17 +4947,11 @@ async function _fetchAndProcess(background){
         setLoadingText && setLoadingText('Lendo planilhas…');
         /* Metas é lida em paralelo; se falhar, o painel continua,
            mas mostra o motivo na página de Horas Extras. */
-        let bases, metas;
-        if(PORTEIRO_URL){
-            /* porteiro: base de pontos e metas numa chamada só */
-            ({bases, metas} = await gvizPorteiroTudo());
-        }else{
-            const metasPromise = gviz('Metas', 'SELECT *')
-                .then(r => { METAS_ERROR = null; return r; })
-                .catch(e => { METAS_ERROR = e.message; return {cols:[],rows:[]}; });
-            bases = await gviz('Bases pontos', BASES_SELECT);
-            metas = await metasPromise;
-        }
+        const metasPromise = gviz('Metas', 'SELECT *')
+            .then(r => { METAS_ERROR = null; return r; })
+            .catch(e => { METAS_ERROR = e.message; return {cols:[],rows:[]}; });
+        const bases = await gviz('Bases pontos', BASES_SELECT);
+        const metas = await metasPromise;
 
         /* Guarda para re-processar ao mudar período */
         BASES_RESULT = bases;
@@ -5125,7 +4962,6 @@ async function _fetchAndProcess(background){
         lcSave(DATA, MONTHS_DYNAMIC);
 
         if(!background){
-            PENDING_FILTER = false;
             showLoading(false);
             initializeDashboard();
             injectRefreshButton(0);
@@ -5134,15 +4970,12 @@ async function _fetchAndProcess(background){
             /* Atualiza a UI sem mostrar overlay de loading */
             initializeDashboard();
             injectRefreshButton(0);
-            if(PENDING_FILTER){ PENDING_FILTER = false; showLoading(false); }
         }
     }catch(err){
-        if(!background && err.message !== 'auth'){
+        if(!background){
             showError('Erro ao carregar: '+err.message);
         }
         throw err;
-    }finally{
-        FETCH_IN_FLIGHT = false;
     }
 }
 
@@ -5250,17 +5083,13 @@ function processRawData(basesResult, metasResult){
             if(v !== undefined && v !== null){ total += v * days / mEnd.getDate(); found = true; }
             m++; if(m > 11){ m = 0; y++; }
         }
-        if(!found) return null;
-        /* meta pequena num período curto não pode virar 0 no arredondamento */
-        const r = Math.round(total);
-        return (r === 0 && total > 0) ? Math.round(total*10)/10 : r;
+        return found ? Math.round(total) : null;
     }
 
     /* ── Leitura das linhas ──
        Índices após SELECT C,D,F,H,I,AB,AD,AF,AI,G,AL,AN,AP,AQ,AS,AH,AT:
        0=Data 1=Crachá 2=Nome 3=Saída1 4=Entrada2 5=HETotal 6=HEFlag 7=AlmDur
-       8=HorárioSaída 9=Entrada1 10=FaltaInterjornada 11=MêsN° 12=Setor 13=Gerente 14=FaltaAlmoço(<1h) 15=ExcessoAlmoço planilha(>2h, não usado) 16=Empresa
-       17=Saída2 18=Entrada3 19=Saída3 */
+       8=HorárioSaída 9=Entrada1 10=FaltaInterjornada 11=MêsN° 12=Setor 13=Gerente 14=FaltaAlmoço(<1h) 15=ExcessoAlmoço planilha(>2h, não usado) 16=Empresa */
     const dataRows = (basesResult && basesResult.rows) ? basesResult.rows : [];
     let rows = [];
     const monthKeys = new Set();
@@ -5315,37 +5144,18 @@ function processRawData(basesResult, metasResult){
             heFlag,
             heHours: heFlag ? parseTime(row[5]) : 0,
             lunchLess: (+row[14] || 0) ? 1 : 0,
-            lunchMore: Math.round(lunchDur*60) > LUNCH_MAX_MIN ? 1 : 0,   /* regra da diretoria: tolerância de 5 min — até 1h05 não conta, 1h06 já conta */
+            lunchMore: lunchDur > 1 + 1e-9 ? 1 : 0,   /* regra da diretoria: almoço acima de 1h00 (1h01 já conta) */
             lunchDur,
             lunchStart: String(row[3]||'').trim(),
             lunchEnd:   String(row[4]||'').trim(),
             exitStr:    String(row[8]||'').trim(),
             entryStr:   String(row[9]||'').trim(),
-            /* nº de batidas entre Entrada 1 e Saída 3 (as mesmas que a planilha usa para o Horário Saída) */
-            punches: [9,3,4,17,18,19].filter(i=>row[i]!==null && row[i]!==undefined && String(row[i]).trim()!=='').length,
+            alFlag: +row[10] || 0,
             inPeriod: inP(dateObj)
         });
     });
 
     rows = rows.filter(Boolean);
-
-    /* Empresa filtrada: a aba Metas não tem coluna de empresa, então a meta da
-       empresa (e de cada gerência dentro dela) é a soma das metas dos setores
-       que aparecem nos registros dessa empresa. */
-    if(selCompany !== 'Consolidado'){
-        const setoresEmp = new Set(rows.map(r=>r.setor));
-        Object.keys(gerenteMeta).forEach(k=>delete gerenteMeta[k]);
-        Object.keys(companyMeta).forEach(k=>delete companyMeta[k]);
-        Object.entries(setorMeta).forEach(([setor,byMonth])=>{
-            if(!setoresEmp.has(setor)) return;
-            const g = metaGerBySetor[setor] || '';
-            gerenteMeta[g] = gerenteMeta[g] || {};
-            Object.entries(byMonth).forEach(([mn,h])=>{
-                gerenteMeta[g][mn] = (gerenteMeta[g][mn]||0) + h;
-                companyMeta[mn]    = (companyMeta[mn]||0)    + h;
-            });
-        });
-    }
 
     /* Último dia com registro na base */
     let lastData = null;
@@ -5408,11 +5218,8 @@ function processRawData(basesResult, metasResult){
             if(!empLunchData[r.setor]) empLunchData[r.setor] = {};
             const e = empLunchData[r.setor][r.cracha] =
                 empLunchData[r.setor][r.cracha] || {name:r.name,less:0,more:0,minDur:999,maxDur:0,history:[]};
-            if(r.lunchLess) e.less++;
-            if(r.lunchMore) e.more++;
-            /* menor e maior duração entre todas as ocorrências do colaborador */
-            if(r.lunchDur>0 && r.lunchDur<e.minDur) e.minDur=r.lunchDur;
-            if(r.lunchDur>e.maxDur) e.maxDur=r.lunchDur;
+            if(r.lunchLess){ e.less++; if(r.lunchDur>0 && r.lunchDur<e.minDur) e.minDur=r.lunchDur; }
+            if(r.lunchMore){ e.more++; if(r.lunchDur>e.maxDur) e.maxDur=r.lunchDur; }
             e.history.push({date:r.datePt,start:r.lunchStart,end:r.lunchEnd,
                 duration:r.lunchDur>0?formatDurationStr(r.lunchDur):'—',
                 type:r.lunchLess?'less':'more'});
@@ -5425,44 +5232,32 @@ function processRawData(basesResult, metasResult){
     let interOccP = 0, interMinP = 999;
 
     Object.entries(empInterRows).forEach(([cracha,list])=>{
-        /* Só dias trabalhados com batidas completas (nº par, ao menos entrada e saída).
-           Dia com 1 ou 3 batidas tem horário de saída incerto e é ignorado. */
-        const work = list
-            .filter(r=>r.entryStr && r.exitStr && r.punches >= 2 && r.punches % 2 === 0)
-            .sort((a,b)=>a.dateObj-b.dateObj);
-        const toMin = s => Math.round(parseTime(s)*60);
-        for(let i=1;i<work.length;i++){
-            const cur  = work[i];
-            const prev = work[i-1];
-
-            const dayDiff = Math.round((
-                new Date(cur.dateObj.getFullYear(),cur.dateObj.getMonth(),cur.dateObj.getDate()) -
-                new Date(prev.dateObj.getFullYear(),prev.dateObj.getMonth(),prev.dateObj.getDate())
-            )/86400000);
-            if(dayDiff < 1 || dayDiff > 3) continue;
-
-            /* Conta em minutos inteiros (em horas fracionadas, 11h00 exatas às vezes
-               vira 10,9999… e seria contada como infração).
-               Turno que vira a meia-noite: saída menor que a entrada do mesmo dia
-               significa que a saída foi no dia seguinte. */
-            let exitMin = toMin(prev.exitStr);
-            if(exitMin < toMin(prev.entryStr)) exitMin += 1440;
-            const intvMin = dayDiff*1440 + toMin(cur.entryStr) - exitMin;
-
-            /* Intervalo negativo = batidas sobrepostas (erro de registro): não conta */
-            if(intvMin < 0) continue;
-
-            /* Infração: intervalo inferior a 11 horas (660 min) */
-            if(intvMin >= 660) continue;
-            const intv = intvMin / 60;
+        list.sort((a,b)=>a.dateObj-b.dateObj);
+        for(let i=0;i<list.length;i++){
+            const cur = list[i];
+            if(!cur.alFlag) continue;
 
             execInter[cur.ym] = (execInter[cur.ym]||0) + 1;
             if(!cur.inPeriod) continue;
 
+            /* Intervalo: saída do registro anterior → entrada do dia */
+            const prev = i > 0 ? list[i-1] : null;
+            let intv = null;
+            if(prev){
+                const dayDiff = Math.round((
+                    new Date(cur.dateObj.getFullYear(),cur.dateObj.getMonth(),cur.dateObj.getDate()) -
+                    new Date(prev.dateObj.getFullYear(),prev.dateObj.getMonth(),prev.dateObj.getDate())
+                )/86400000);
+                if(dayDiff >= 1 && dayDiff <= 3 && prev.exitStr && cur.entryStr){
+                    intv = dayDiff*24 + parseTime(cur.entryStr) - parseTime(prev.exitStr);
+                    if(intv < 0) intv += 24;
+                }
+            }
+
             interOccP++;
             interEmp.add(cracha);
             interDays.add(cur.datePt);
-            if(intv < interMinP) interMinP = intv;
+            if(intv !== null && intv < interMinP) interMinP = intv;
 
             if(!empInterData[cur.setor]) empInterData[cur.setor] = {};
             const e = empInterData[cur.setor][cracha] =
@@ -5470,26 +5265,20 @@ function processRawData(basesResult, metasResult){
                 {name:cur.name,gerente:cur.gerente,occurrences:0,days:new Set(),minInterval:999,lastDate:'',history:[]};
             e.occurrences++;
             e.days.add(cur.datePt);
-            if(intv < e.minInterval) e.minInterval = intv;
+            if(intv !== null && intv < e.minInterval) e.minInterval = intv;
             if(!e.lastDate || dateKey(cur.datePt) > dateKey(e.lastDate)) e.lastDate = cur.datePt;
             e.history.push({
                 date:cur.datePt,
-                exit:(exitMin >= 1440
-                        ? (d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear())(
-                            new Date(prev.dateObj.getFullYear(),prev.dateObj.getMonth(),prev.dateObj.getDate()+1))
-                        : prev.datePt)+' · '+prev.exitStr,
-                entry:cur.datePt+' · '+cur.entryStr,
-                interval:formatIntervalStr(intv)
+                exit:prev ? prev.datePt+' · '+(prev.exitStr||'—') : '—',
+                entry:cur.datePt+' · '+(cur.entryStr||'—'),
+                interval:intv !== null ? formatIntervalStr(intv) : '—'
             });
         }
     });
 
     /* ── Visões por gerência e setor (período) ── */
-    /* Abaixo de 1 h mantém uma casa decimal: com arredondamento inteiro, setores
-       pequenos sumiam do Pareto enquanto a gerência mostrava horas */
-    const roundH = h => h >= 1 ? Math.round(h) : Math.round(h*10)/10;
     const mgmtHEList = Object.entries(mgmtHE)
-        .map(([name,h])=>({ name, hours:roundH(h), target:periodMeta(gerenteMeta[name]) }))
+        .map(([name,h])=>({ name, hours:Math.round(h), target:periodMeta(gerenteMeta[name]) }))
         .filter(m=>m.hours>0)
         .sort((a,b)=>heWorstFirst(a,b));
     const totalMgmtH = mgmtHEList.reduce((s,m)=>s+m.hours,0);
@@ -5497,7 +5286,7 @@ function processRawData(basesResult, metasResult){
 
     const sectorHEByMgmt = {};
     Object.entries(sectorHE).forEach(([setor,h])=>{
-        const hours = roundH(h);
+        const hours = Math.round(h);
         if(!hours) return;
         const g = sectorGer[setor];
         (sectorHEByMgmt[g] = sectorHEByMgmt[g] || []).push({name:setor, hours, target:periodMeta(setorMeta[setor])});
@@ -5555,8 +5344,7 @@ function processRawData(basesResult, metasResult){
 
     DATA.overtime = { managements:mgmtHEList, sectors:sectorHEByMgmt, employees:{} };
     Object.entries(empHEData).forEach(([setor,emps])=>{
-        DATA.overtime.employees[setor] = Object.entries(emps).map(([cracha,e])=>({
-            cracha,
+        DATA.overtime.employees[setor] = Object.values(emps).map(e=>({
             name:e.name,
             hours:Math.round(e.heHours*10)/10,
             days:e.heDays,
@@ -5576,8 +5364,7 @@ function processRawData(basesResult, metasResult){
         employees:{}
     };
     Object.entries(empInterData).forEach(([setor,emps])=>{
-        DATA.interjourney.employees[setor] = Object.entries(emps).map(([cracha,e])=>({
-            cracha,
+        DATA.interjourney.employees[setor] = Object.values(emps).map(e=>({
             name:e.name,
             occurrences:e.occurrences,
             days:e.days.size,
@@ -5595,8 +5382,7 @@ function processRawData(basesResult, metasResult){
         employees:{}
     };
     Object.entries(empLunchData).forEach(([setor,emps])=>{
-        DATA.lunch.employees[setor] = Object.entries(emps).map(([cracha,e])=>({
-            cracha,
+        DATA.lunch.employees[setor] = Object.values(emps).map(e=>({
             name:e.name,
             less:e.less,
             more:e.more,
@@ -5630,22 +5416,22 @@ function updateExecutiveCards(){
     /* HE employees card (HE screen) */
     const heEmpEl = get('executiveHEEmployees');
     if(heEmpEl) heEmpEl.textContent =
-        DATA._heEmployees != null ? N(DATA._heEmployees) : '—';
+        DATA._heEmployees != null ? DATA._heEmployees : '—';
 
     /* HE screen "HE Realizadas" card */
     const heScreenEl = get('heScreenRealized');
     if(heScreenEl) heScreenEl.textContent =
-        (DATA._totalHELastMn != null ? N(DATA._totalHELastMn) : '—') + ' h';
+        (DATA._totalHELastMn != null ? DATA._totalHELastMn : '—') + ' h';
 
     /* HE Over2h — two cards: executive screen (execOver2h*) and HE screen (executiveHEOver2h*) */
     ['execOver2h', 'executiveHEOver2h'].forEach(prefix => {
         const val = get(prefix + 'Value');
         const sec = get(prefix + 'Secondary');
         if(val) val.textContent =
-            DATA._heOver2hCount != null ? N(DATA._heOver2hCount) : '—';
+            DATA._heOver2hCount != null ? DATA._heOver2hCount : '—';
         if(sec) sec.textContent =
             DATA._heOver2hOccurrences != null
-            ? N(DATA._heOver2hOccurrences) + ' ocorrências'
+            ? DATA._heOver2hOccurrences + ' ocorrências'
             : '— ocorrências';
     });
 
@@ -5653,21 +5439,21 @@ function updateExecutiveCards(){
     const interEmpEl = get('execInterEmployees');
     const interOccEl = get('execInterOccurrences');
     if(interEmpEl) interEmpEl.textContent =
-        DATA._interEmployees != null ? N(DATA._interEmployees) : '—';
+        DATA._interEmployees != null ? DATA._interEmployees : '—';
     if(interOccEl) interOccEl.textContent =
         DATA._interOccurrences != null
-        ? N(DATA._interOccurrences) + ' ocorrências'
+        ? DATA._interOccurrences + ' ocorrências'
         : '— ocorrências';
 
     /* Lunch executive card */
     const lunchEmpEl = get('execLunchEmployees');
     const lunchDetEl = get('execLunchDetail');
     if(lunchEmpEl) lunchEmpEl.textContent =
-        DATA._lunchEmployees != null ? N(DATA._lunchEmployees) : '—';
+        DATA._lunchEmployees != null ? DATA._lunchEmployees : '—';
     if(lunchDetEl) lunchDetEl.textContent =
         DATA._lunchLess != null
-        ? N(DATA._lunchLess) + ' <1h · ' + N(DATA._lunchMore || 0) + ' >1h05'
-        : '— <1h · — >1h05';
+        ? DATA._lunchLess + ' <1h · ' + (DATA._lunchMore || 0) + ' >1h'
+        : '— <1h · — >1h';
 
     /* Top HE management card (HE screen) */
     /* Maior concentração = gerência com mais horas (independe da ordenação da tabela) */
@@ -5720,194 +5506,108 @@ function updateExecutiveCards(){
 
     /* Tela Interjornada */
     const setTxt = (id,v) => { const el = get(id); if(el) el.textContent = v; };
-    setTxt('interCardOcc',  N(DATA._interOccurrences ?? '—'));
-    setTxt('interCardEmp',  N(DATA._interEmployees ?? '—'));
-    setTxt('interCardDays', N(DATA._interDays ?? '—'));
+    setTxt('interCardOcc',  DATA._interOccurrences ?? '—');
+    setTxt('interCardEmp',  DATA._interEmployees ?? '—');
+    setTxt('interCardDays', DATA._interDays ?? '—');
     setTxt('interCardMin',  DATA._interMin ?? '—');
 
     /* Tela Almoço */
     const less = DATA._lunchLess || 0, more = DATA._lunchMore || 0, tot = less + more;
     const pct = v => tot ? (v/tot*100).toFixed(1).replace('.',',') + '% do total' : '—';
-    setTxt('lunchCardTotal', N(tot));
-    setTxt('lunchCardEmp',   N(DATA._lunchEmployees ?? '—'));
-    setTxt('lunchCardLess',  N(less));
+    setTxt('lunchCardTotal', tot);
+    setTxt('lunchCardEmp',   DATA._lunchEmployees ?? '—');
+    setTxt('lunchCardLess',  less);
     setTxt('lunchCardLessPct', pct(less));
-    setTxt('lunchCardMore',  N(more));
+    setTxt('lunchCardMore',  more);
     setTxt('lunchCardMorePct', pct(more));
 }
 
 
-
-/* =========================================================
-   LOGIN (código por e-mail, validado pelo Apps Script)
-========================================================= */
-/* Sessão só desta aba (sessionStorage): atualizar a página mantém o login,
-   fechar a aba ou o navegador desloga. O porteiro limita a sessão a 8 h. */
-try{ localStorage.removeItem(SESSAO_KEY); }catch(e){}   /* sessões antigas, de quando o login durava dias */
-function lerSessao(){
-    try{
-        const o = JSON.parse(sessionStorage.getItem(SESSAO_KEY) || 'null');
-        if(o && o.token && o.expira > Date.now()) return o;
-    }catch(e){}
-    return null;
-}
-function gravarSessao(o){ try{ sessionStorage.setItem(SESSAO_KEY, JSON.stringify(o)); }catch(e){} }
-function apagarSessao(){ try{ sessionStorage.removeItem(SESSAO_KEY); }catch(e){} }
-
-async function chamarPorteiro(payload){
-    let r;
-    const ctrl = new AbortController();
-    const limite = setTimeout(()=>ctrl.abort(), 150000);
-    try{
-        /* text/plain evita a checagem prévia de CORS que o Apps Script não responde */
-        r = await fetch(PORTEIRO_URL, {method:'POST', body:JSON.stringify(payload), signal:ctrl.signal,
-                                       headers:{'Content-Type':'text/plain;charset=utf-8'}});
-    }catch(e){
-        throw new Error(e.name === 'AbortError'
-            ? 'O servidor de acesso demorou mais de 2 minutos para responder.'
-            : 'Sem conexão com o servidor de acesso (' + e.message + ').');
-    }finally{ clearTimeout(limite); }
-    if(!r.ok) throw new Error('Servidor de acesso respondeu ' + r.status + '.');
-    const txt = await r.text();
-    try{ return JSON.parse(txt); }
-    catch(e){ throw new Error('Resposta inesperada do servidor de acesso: ' + txt.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,160)); }
-}
-
-let loginEmailAtual = '', loginPassoAtual = 'email';
-function loginMsg(txt, erro){
-    const el = document.getElementById('loginMsg');
-    el.textContent = txt || '';
-    el.className = erro ? 'erro' : '';
-}
-function loginPasso(passo){
-    loginPassoAtual = passo;
-    document.getElementById('loginStepEmail').style.display = passo === 'email' ? '' : 'none';
-    document.getElementById('loginStepNova').style.display  = passo === 'nova'  ? '' : 'none';
-    document.getElementById('loginSub').textContent = passo === 'email'
-        ? 'Acesso restrito. Entre com seu e-mail e senha.'
-        : 'Enviamos um código para ' + loginEmailAtual + '. Use-o para criar sua senha (vale 10 minutos).';
-    let foco = 'loginCode';
-    if(passo === 'email'){
-        /* e-mail lembrado: no dia a dia basta digitar a senha */
-        const em = document.getElementById('loginEmail');
-        if(!em.value){ try{ em.value = localStorage.getItem('pj_email') || ''; }catch(e){} }
-        foco = em.value ? 'loginSenha' : 'loginEmail';
-    }
-    setTimeout(()=>document.getElementById(foco).focus(), 50);
-}
-function exigirLogin(msg, limparDados){
-    apagarSessao();
-    if(limparDados) lcClear();
-    showLoading(false);
-    document.getElementById('userChip').classList.remove('on');
-    document.getElementById('loginOverlay').classList.add('open');
-    loginPasso('email');
-    loginMsg(msg || '', !!msg);
-}
-async function comBotao(id, txt, fn){
-    const btn = document.getElementById(id);
-    btn.disabled = true; loginMsg(txt);
-    try{ await fn(); }
-    catch(e){ loginMsg(e.message, true); }
-    finally{ btn.disabled = false; }
-}
-function entrou(r){
-    gravarSessao({token:r.token, email:r.email, nome:r.nome, expira:r.expira});
-    document.getElementById('loginOverlay').classList.remove('open');
-    ['loginSenha','loginCode','loginNova','loginNova2'].forEach(id=>document.getElementById(id).value='');
-    loginMsg('');
-    mostrarUsuario();
-    loadAndProcess();
-}
-/* Tela única: com senha → entra; sem senha → primeiro acesso (manda o código) */
-function loginEntrarUnico(){
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    const senha = document.getElementById('loginSenha').value;
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ loginMsg('Informe um e-mail válido.', true); return; }
-    loginEmailAtual = email;
-    try{ localStorage.setItem('pj_email', email); }catch(e){}
-    return comBotao('loginEnter', senha ? 'Entrando…' : 'Verificando…', async ()=>{
-        if(senha){
-            const r = await chamarPorteiro({action:'login', email, password:senha, agent:navigator.userAgent});
-            if(r.ok){ entrou(r); return; }
-            if(!r.needSetup){ loginMsg(r.error || 'Não foi possível entrar.', true); return; }
-            /* digitou senha mas ainda não criou uma: segue como primeiro acesso */
-        }
-        const r = await chamarPorteiro({action:'start', email});
-        if(!r.ok){ loginMsg(r.error || 'Não foi possível continuar.', true); return; }
-        if(r.hasPassword){ loginMsg('Digite sua senha.', true); document.getElementById('loginSenha').focus(); return; }
-        document.getElementById('loginSenha').value = '';
-        loginPasso('nova'); loginMsg('');
-    });
-}
-/* 2b. código + senha nova (primeiro acesso ou esqueci) */
-function loginCriarSenha(){
-    const code  = document.getElementById('loginCode').value.replace(/\D/g,'');
-    const nova  = document.getElementById('loginNova').value;
-    const nova2 = document.getElementById('loginNova2').value;
-    if(code.length !== 6){ loginMsg('Digite os 6 dígitos do código.', true); return; }
-    if(nova.length < 6){ loginMsg('A senha precisa ter pelo menos 6 caracteres.', true); return; }
-    if(nova !== nova2){ loginMsg('As duas senhas não são iguais.', true); return; }
-    return comBotao('loginCreate', 'Salvando…', async ()=>{
-        const r = await chamarPorteiro({action:'setPassword', email:loginEmailAtual, code, password:nova, agent:navigator.userAgent});
-        if(!r.ok){ loginMsg(r.error || 'Não foi possível criar a senha.', true); return; }
-        entrou(r);
-    });
-}
-async function loginEsqueci(){
-    if(loginPassoAtual === 'email'){
-        const em = document.getElementById('loginEmail').value.trim().toLowerCase();
-        if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ loginMsg('Digite seu e-mail e clique em "Esqueci minha senha".', true); return; }
-        loginEmailAtual = em;
-    }
-    if(!loginEmailAtual){ loginPasso('email'); return; }
-    loginMsg('Enviando código…');
-    try{
-        const r = await chamarPorteiro({action:'forgot', email:loginEmailAtual});
-        if(!r.ok){ loginMsg(r.error || 'Não foi possível enviar o código.', true); return; }
-        loginPasso('nova');
-        loginMsg('');
-    }catch(e){ loginMsg(e.message, true); }
-}
-function loginVoltar(){ loginPasso('email'); loginMsg(''); }
-document.getElementById('loginForm').addEventListener('submit', e=>{
-    e.preventDefault();
-    if(loginPassoAtual === 'email') loginEntrarUnico();
-    else loginCriarSenha();
-});
-function mostrarUsuario(){
-    const s = lerSessao();
-    const chip = document.getElementById('userChip');
-    if(!PORTEIRO_URL || !s){ chip.classList.remove('on'); return; }
-    document.getElementById('userEmail').textContent = s.nome || s.email;
-    document.getElementById('userEmail').title = s.email;
-    chip.classList.add('on');
-}
-async function sairDoPainel(){
-    const s = lerSessao();
-    if(s){ try{ await chamarPorteiro({action:'logout', token:s.token}); }catch(e){} }
-    exigirLogin('Você saiu do painel.', true);
-    document.getElementById('loginMsg').className = '';
-    document.getElementById('loginEmail').value = s ? s.email : '';
-}
-
-/* ── Carga inicial ── */
-function iniciarPainel(){
-    if(PORTEIRO_URL && !lerSessao()){ exigirLogin(); return; }
-    mostrarUsuario();
-    loadAndProcess();
-}
-
 /* ── Carga inicial (no final, para todas as constantes já existirem) ── */
 if(document.fonts && document.fonts.ready){
-    document.fonts.ready.then(()=>iniciarPainel()).catch(()=>iniciarPainel());
+    document.fonts.ready.then(()=>loadAndProcess()).catch(()=>loadAndProcess());
 }else{
-    iniciarPainel();
+    loadAndProcess();
 }
+
+/* ═══ CUSTOS HE ═══ */
+(function(){
+  const HE_URL='https://script.google.com/macros/s/AKfycbx4tPzcnoP2cbrhQaWy43Ugaq9j-tfm5Ya-fs5UnEsj2PEtBybJ0IXJg8nZCmyQbfys/exec';
+  const MESES=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  let heData=null,heChart=null,_loaded=false;
+
+  window.heInitScreen=async function(){
+    if(_loaded)return; _loaded=true;
+    try{
+      const r=await fetch(HE_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'read',sheet:'HE_CUSTOS'}),redirect:'follow'});
+      const j=await r.json();
+      if(j&&j.values&&j.values.length>1){
+        heData=j.values.slice(1).map(row=>({ano:+row[0]||2026,mes:+row[1]||1,ind:+row[2]||0,esc:+row[3]||0})).filter(r=>r.mes>=1&&r.mes<=12);
+        try{localStorage.setItem('he_idx_cache',JSON.stringify(heData));}catch(e){}
+      }
+    }catch(e){console.warn('HE:',e);}
+    if(!heData){try{const c=localStorage.getItem('he_idx_cache');if(c)heData=JSON.parse(c);}catch(e){}}
+    renderHE();
+  };
+
+  function fmt(v){
+    if(v>=1e6)return'R$'+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'M';
+    if(v>=1e3)return'R$'+(v/1e3).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'K';
+    return'R$'+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  function el(id){return document.getElementById(id);}
+  function set(id,v){const e=el(id);if(e)e.textContent=v;}
+
+  function renderHE(){
+    const noData=!heData||!heData.length;
+    const al=el('he-idx-alert'); if(al)al.style.display=noData?'block':'none';
+    if(noData){set('he-idx-total','Sem dados');set('he-idx-meses','Use o Importador HE Custos');return;}
+    let tI=0,tE=0;
+    heData.forEach(r=>{tI+=r.ind;tE+=r.esc;});
+    const tA=tI+tE;
+    set('he-idx-total',fmt(tA));
+    set('he-idx-meses',heData.length+' meses');
+    set('he-idx-media',heData.length?fmt(tA/heData.length):'—');
+    const last=heData[heData.length-1];
+    set('he-idx-ultimo',fmt(last.ind+last.esc));
+    set('he-idx-ultimo-label',MESES[last.mes]+'/'+last.ano);
+    set('he-idx-pct-ind',tA>0?(tI/tA*100).toFixed(1)+'%':'—');
+    const tbody=el('tbody-he-idx');
+    if(tbody)tbody.innerHTML=heData.map(r=>{
+      const tot=r.ind+r.esc,pct=tA>0?(tot/tA*100).toFixed(1)+'%':'—';
+      return`<tr><td>${MESES[r.mes]}/${r.ano}</td><td class="numeric">${fmt(r.ind)}</td><td class="numeric">${fmt(r.esc)}</td><td class="numeric"><strong>${fmt(tot)}</strong></td><td class="numeric">${pct}</td></tr>`;
+    }).join('');
+    set('he-idx-tot-ind',fmt(tI));
+    set('he-idx-tot-esc',fmt(tE));
+    set('he-idx-tot-all',fmt(tA));
+    const labels=heData.map(r=>MESES[r.mes]+'/'+String(r.ano).slice(2));
+    if(heChart)heChart.destroy();
+    const ctx=el('chart-he-idx');
+    if(!ctx||typeof Chart==='undefined')return;
+    heChart=new Chart(ctx,{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:'HE Indústria',data:heData.map(r=>r.ind),backgroundColor:'rgba(0,61,88,.7)',borderColor:'#003D58',borderWidth:1,stack:'he'},
+        {label:'HE Escritório',data:heData.map(r=>r.esc),backgroundColor:'rgba(21,210,255,.5)',borderColor:'#15D2FF',borderWidth:1,stack:'he'}
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{position:'top',labels:{font:{size:11},boxWidth:12,padding:14}},
+          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y)}}
+        },
+        scales:{
+          x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
+          y:{stacked:true,ticks:{font:{size:10},callback:v=>fmt(v)}}
+        }
+      }
+    });
+  }
+})();
 </script>
 
 <!-- versão do painel -->
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.9 · 09/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v1.2 · 29/09/2026</div>
 
 </body>
 </html>
