@@ -1085,7 +1085,6 @@ canvas{
         <button class="menu-item" data-screen="overtime" onclick="navigate('overtime')">Horas Extras</button>
         <button class="menu-item" data-screen="interjourney" onclick="navigate('interjourney')">Interjornada</button>
         <button class="menu-item" data-screen="lunch" onclick="navigate('lunch')">Horário de Almoço</button>
-        <button class="menu-item" data-screen="custos-he" onclick="navigate('custos-he');heInitScreen()">Custos HE</button>
     </nav>
 
     <div class="topbar-spacer"></div>
@@ -1765,78 +1764,6 @@ canvas{
             </table>
         </div>
     </section>
-
-</section>
-
-<!-- ======================================================
-     CUSTOS HE
-====================================================== -->
-<section id="screen-custos-he" class="screen">
-
-  <section class="page-heading">
-    <div>
-      <span class="kicker">DIRETORIA · HORA EXTRA</span>
-      <h1>Custos de Hora Extra</h1>
-      <p class="page-description">Custo mensal de Hora Extra — Indústria e Escritório. Fonte: DRE Frigobet · aba HE_CUSTOS.</p>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
-      <div class="card petroleum">
-        <div class="card-value" id="he-idx-total">—</div>
-        <div class="card-title">Total YTD</div>
-        <div class="card-caption" id="he-idx-meses">—</div>
-      </div>
-      <div class="card petroleum">
-        <div class="card-value" id="he-idx-media">—</div>
-        <div class="card-title">Média Mensal</div>
-        <div class="card-caption">por mês</div>
-      </div>
-      <div class="card petroleum">
-        <div class="card-value" id="he-idx-ultimo">—</div>
-        <div class="card-title">Último Mês</div>
-        <div class="card-caption" id="he-idx-ultimo-label">—</div>
-      </div>
-      <div class="card petroleum">
-        <div class="card-value" id="he-idx-pct-ind">—</div>
-        <div class="card-title">% HE Indústria</div>
-        <div class="card-caption">sobre total HE</div>
-      </div>
-    </div>
-    <div style="position:relative;height:280px"><canvas id="chart-he-idx"></canvas></div>
-  </section>
-
-  <section class="panel">
-    <header class="panel-header">
-      <div>
-        <div class="panel-kicker">DETALHAMENTO</div>
-        <h2 class="panel-title">Hora Extra por mês</h2>
-      </div>
-    </header>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Mês/Ano</th>
-          <th class="numeric">HE Indústria</th>
-          <th class="numeric">HE Escritório</th>
-          <th class="numeric">Total HE</th>
-          <th class="numeric">% YTD</th>
-        </tr></thead>
-        <tbody id="tbody-he-idx"></tbody>
-        <tfoot><tr>
-          <td><strong>TOTAL</strong></td>
-          <td class="numeric" id="he-idx-tot-ind">—</td>
-          <td class="numeric" id="he-idx-tot-esc">—</td>
-          <td class="numeric" id="he-idx-tot-all">—</td>
-          <td class="numeric">100%</td>
-        </tr></tfoot>
-      </table>
-    </div>
-    <p id="he-idx-alert" style="display:none;padding:12px 16px;font-size:12px;color:var(--muted)">
-      ℹ Use o <strong>Importador HE Custos</strong> para salvar os dados na aba <strong>HE_CUSTOS</strong> do Sheets.
-    </p>
-  </section>
 
 </section>
 
@@ -4921,9 +4848,6 @@ function showError(msg){
 /* O cache guarda os números JÁ CALCULADOS. Sempre que a regra de cálculo mudar,
    suba APP_VERSION (e o texto do versionTag) — senão o navegador continua
    exibindo o resultado antigo por até 6h. */
-/* APP_VERSION semeia a chave do cache — suba APENAS quando a REGRA DE CÁLCULO mudar.
-   A tela "Custos HE" (v3.0) lê outra fonte e não altera nenhum número da base de pontos,
-   portanto o cache do v2.9 continua válido e não foi invalidado de propósito. */
 const APP_VERSION = '2.9';
 /* Excesso de almoço: acima de 1h00 + 5 min de tolerância */
 const LUNCH_MAX_MIN = 65;
@@ -5983,86 +5907,7 @@ if(document.fonts && document.fonts.ready){
 </script>
 
 <!-- versão do painel -->
-<script>
-/* =========================================================
-   CUSTOS HE — tela Custos HE
-========================================================= */
-(function(){
-  const HE_URL='https://script.google.com/macros/s/AKfycbx4tPzcnoP2cbrhQaWy43Ugaq9j-tfm5Ya-fs5UnEsj2PEtBybJ0IXJg8nZCmyQbfys/exec';
-  const MESES=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  let heData=null,heChart=null,_loaded=false;
-
-  window.heInitScreen=async function(){
-    if(_loaded)return; _loaded=true;
-    try{
-      const r=await fetch(HE_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'read',sheet:'HE_CUSTOS'}),redirect:'follow'});
-      const j=await r.json();
-      if(j&&j.values&&j.values.length>1){
-        heData=j.values.slice(1).map(row=>({ano:+row[0]||2026,mes:+row[1]||1,ind:+row[2]||0,esc:+row[3]||0})).filter(r=>r.mes>=1&&r.mes<=12);
-        try{localStorage.setItem('he_idx_cache',JSON.stringify(heData));}catch(e){}
-      }
-    }catch(e){console.warn('HE:',e);}
-    if(!heData){try{const c=localStorage.getItem('he_idx_cache');if(c)heData=JSON.parse(c);}catch(e){}}
-    renderHE();
-  };
-
-  function fmt(v){
-    if(v>=1e6)return'R$'+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'M';
-    if(v>=1e3)return'R$'+(v/1e3).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'K';
-    return'R$'+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  }
-  function el(id){return document.getElementById(id);}
-  function set(id,v){const e=el(id);if(e)e.textContent=v;}
-
-  function renderHE(){
-    const noData=!heData||!heData.length;
-    const al=el('he-idx-alert'); if(al)al.style.display=noData?'block':'none';
-    if(noData){set('he-idx-total','Sem dados');set('he-idx-meses','Use o Importador HE Custos');return;}
-    let tI=0,tE=0;
-    heData.forEach(r=>{tI+=r.ind;tE+=r.esc;});
-    const tA=tI+tE;
-    set('he-idx-total',fmt(tA));
-    set('he-idx-meses',heData.length+' meses');
-    set('he-idx-media',heData.length?fmt(tA/heData.length):'—');
-    const last=heData[heData.length-1];
-    set('he-idx-ultimo',fmt(last.ind+last.esc));
-    set('he-idx-ultimo-label',MESES[last.mes]+'/'+last.ano);
-    set('he-idx-pct-ind',tA>0?(tI/tA*100).toFixed(1)+'%':'—');
-    const tbody=el('tbody-he-idx');
-    if(tbody)tbody.innerHTML=heData.map(r=>{
-      const tot=r.ind+r.esc,pct=tA>0?(tot/tA*100).toFixed(1)+'%':'—';
-      return`<tr><td>${MESES[r.mes]}/${r.ano}</td><td class="numeric">${fmt(r.ind)}</td><td class="numeric">${fmt(r.esc)}</td><td class="numeric"><strong>${fmt(tot)}</strong></td><td class="numeric">${pct}</td></tr>`;
-    }).join('');
-    set('he-idx-tot-ind',fmt(tI));
-    set('he-idx-tot-esc',fmt(tE));
-    set('he-idx-tot-all',fmt(tA));
-    const labels=heData.map(r=>MESES[r.mes]+'/'+String(r.ano).slice(2));
-    if(heChart)heChart.destroy();
-    const ctx=el('chart-he-idx');
-    if(!ctx||typeof Chart==='undefined')return;
-    heChart=new Chart(ctx,{
-      type:'bar',
-      data:{labels,datasets:[
-        {label:'HE Indústria',data:heData.map(r=>r.ind),backgroundColor:'rgba(0,61,88,.7)',borderColor:'#003D58',borderWidth:1,stack:'he'},
-        {label:'HE Escritório',data:heData.map(r=>r.esc),backgroundColor:'rgba(21,210,255,.5)',borderColor:'#15D2FF',borderWidth:1,stack:'he'}
-      ]},
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{
-          legend:{position:'top',labels:{font:{size:11},boxWidth:12,padding:14}},
-          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y)}}
-        },
-        scales:{
-          x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
-          y:{stacked:true,ticks:{font:{size:10},callback:v=>fmt(v)}}
-        }
-      }
-    });
-  }
-})();
-</script>
-
-<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v3.0 · 13/10/2026</div>
+<div id="versionTag" style="position:fixed;bottom:6px;right:10px;font-size:10px;color:rgba(150,150,150,0.45);pointer-events:none;z-index:9999;letter-spacing:.3px;">v2.9 · 09/10/2026</div>
 
 </body>
 </html>
